@@ -18,6 +18,7 @@ export async function connect(dbName) {
         console.log(`Connected to the database: ${client.isConnected()}`)
         db = client.db(dbName)
         db_client = client
+        return client
     })
 }
 export function fetchCollections() {
@@ -25,5 +26,6 @@ export function fetchCollections() {
 }
 export function close() {
     console.log("Closing DB Connection")
-    return db_client.close().then(() => {console.log("Db Closed")})
+    return db_client.close()
 }
+

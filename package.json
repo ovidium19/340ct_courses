@@ -2,16 +2,17 @@
   "name": "ovidiu_mitroi_340ct_6832432_backend",
   "version": "1.0.0",
   "description": "This api will provide access to course content, which is stored as documents in a mongodb instance",
-  "main": "index.js",
+  "main": "tools/server.js",
   "scripts": {
     "start": "npm-run-all --parallel  open:src lint:watch test:watch",
     "open:src": "babel-node tools/server.js",
-    "lint": "node_modules/.bin/esw src tools",
+    "lint": "node_modules/.bin/esw  tools",
     "lint:watch": "npm run lint -- --watch",
     "test": "jest --coverage",
     "test:watch": "node_modules/.bin/jest --coverage --watchAll",
     "lint:fix": "esw --fix ",
-    "precommit": "npm-run-all test lint"
+    "precommit": "npm run lint",
+    "prepush": "npm-run-all test lint"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "jquery": "^3.3.1",
     "koa": "^2.6.2",
     "koa-bodyparser": "^4.2.1",
+    "koa-morgan": "^1.0.1",
     "koa-mount": "^4.0.0",
     "koa-router": "^7.4.0",
     "koa-sendfile": "^2.0.1",
