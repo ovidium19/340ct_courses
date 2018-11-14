@@ -1,10 +1,13 @@
 import koa from 'koa'
 import koaBP from 'koa-bodyparser'
 import Router from 'koa-router'
+import koabp from 'koa-bodyparser'
 import status from 'http-status-codes'
 import path from 'path'
+import * as db from '../../../modules/db-persist'
 
 const app = new koa()
+app.use(koaBP())
 const port = 3030
 const router = new Router()
 router.get('/',async ctx => {
@@ -18,6 +21,20 @@ router.get('/',async ctx => {
         ctx.status = status.NOT_FOUND
 		ctx.body = {status: 'error', message: err.message}
     }
+})
+router.post('/create', async ctx => {
+    const user = ctx.request.body
+    let res = await db.createUser(user)
+    ctx.body = res
+    // try{
+    //     let res = await db.createUser(user)
+    //     ctx.body = res
+    // }
+    // catch(err){
+    //     ctx.body = {status: status.NOT_MODIFIED, message: err.message}
+    // }
+
+
 })
 app.use(router.routes())
 app.use(router.allowedMethods())

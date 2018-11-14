@@ -45,8 +45,6 @@ app.use(router.allowedMethods())
 app.use(mount('/api/v1',v1))
 const server = app.listen(port, async() => {
     console.log(`Listening on port ${port}`)
-    await db.connect(process.env.MONGO_DBNAME)
-
 })
 /*
 // ctrl-c to trigger

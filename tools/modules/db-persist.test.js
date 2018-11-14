@@ -2,10 +2,47 @@ jest.mock('mongodb')
 import * as db from './db-persist'
 import dotenv from 'dotenv'
 import { getData } from 'mongodb'
-
-
 dotenv.config()
+let adminUser = {
+    username: process.env.MONGO_ADMIN_USERNAME,
+    password: process.env.MONGO_ADMIN_PASSWORD
+}
+/*
+db-persist should have the following API:
+    createUser(userData,userLogin) -> returns user if successful, error message if not
+    getCourseById(cid,user) -> returns course if successful, error message if not
+    createCourse(courseData,user) -> returns course if successful, error message if not
+    collections(user) -> returns collections in db
+*/
+describe("Testing createUser", () => {
 
+    test("If user credentials are not valid, provide error message", async done => {
+        const userData = {
+            username: 'test',
+            password: 'test'
+        }
+
+
+        done()
+    })
+
+    test("If non-admin user data is provided, return error message", async done => {
+        done()
+    })
+
+    test("If correct admin user is passed insert new user in db", async done => {
+        let userData = {
+            username: "test",
+            password: "test"
+        }
+        const result = await db.createUser(userData,adminUser)
+        done()
+    })
+
+    test("If userData does not include the required fields, return with error message", async done => {
+        done()
+    })
+})
 describe('Testing Connection to db', () => {
 
     test("After connect, database name is set to the parameter", async done => {
