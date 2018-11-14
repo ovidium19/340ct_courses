@@ -1,12 +1,18 @@
+let axios = require('axios')
 jest.mock('mongodb')
+jest.mock('axios')
 import * as db from './db-persist'
 import dotenv from 'dotenv'
 import { getData } from 'mongodb'
+
 dotenv.config()
 let adminUser = {
     username: process.env.MONGO_ADMIN_USERNAME,
     password: process.env.MONGO_ADMIN_PASSWORD
 }
+
+
+
 /*
 db-persist should have the following API:
     createUser(userData,userLogin) -> returns user if successful, error message if not
@@ -15,34 +21,49 @@ db-persist should have the following API:
     collections(user) -> returns collections in db
 */
 describe("Testing createUser", () => {
-
-    test("If user credentials are not valid, provide error message", async done => {
+    beforeAll(() => {
+        axios.mockImplementation((options) => {
+            return new Promise((resolve,reject) => {
+                if (options.hasOwnProperty('headers')){
+                    console.log(options)
+                    resolve(options.headers['Authorization'])
+                }
+                else{
+                    reject({
+                        response: {
+                            headers: {
+                                'www-authenticate': 'Digest realm="MMS Public API", domain="", nonce="testnonce", algorithm=MD5, qop="auth", stale=false'
+                            }
+                        }
+                    })
+                }
+            })
+        })
+    })
+    test("If successfull, result should have a 'response=' field in its authorization header", async done => {
         const userData = {
             username: 'test',
             password: 'test'
         }
-
-
+        const result = await db.createUser(userData)
+        console.log(result)
+        expect(/response=/g.test(result)).toBe(true)
         done()
     })
-
-    test("If non-admin user data is provided, return error message", async done => {
-        done()
-    })
-
-    test("If correct admin user is passed insert new user in db", async done => {
-        let userData = {
-            username: "test",
-            password: "test"
+    test("if userData does not have the right schema, provide error message", async done => {
+        const userData = {
+            nofields: true
         }
-        const result = await db.createUser(userData,adminUser)
-        done()
-    })
-
-    test("If userData does not include the required fields, return with error message", async done => {
+        try{
+            const result = await db.createUser(userData)
+        }
+        catch(result){
+            expect(result.message).toBe('Not the right data')
+        }
         done()
     })
 })
+/*
 describe('Testing Connection to db', () => {
 
     test("After connect, database name is set to the parameter", async done => {
@@ -80,3 +101,4 @@ describe('Testing all methods in db-persist',() => {
         done()
     })
 })
+*/

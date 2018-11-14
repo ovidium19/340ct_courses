@@ -1,12 +1,10 @@
 import {MongoClient} from  'mongodb'
 import axios from 'axios'
-import * as auth from 'http-digest-auth'
 import md5 from 'md5'
 
 let db
-let db_client
 let calls = 0
-async function connect(dbName, user) {
+async function connect(user) {
     let conString = process.env.MONGO_CONNECTION_STRING
     let options = {
         ssl: true,
@@ -22,7 +20,7 @@ async function connect(dbName, user) {
         return client
     })
 }
-async function digestAuthFetchNonce(options,user) {
+export async function digestGenerateHeader(options,user) {
     return await axios(options).catch(err => {
         calls = calls + 1
         const realm = /realm="([\w+!?'\ \/\\-]+)"/g.exec(err.response.headers['www-authenticate'])[1]
@@ -37,7 +35,6 @@ async function digestAuthFetchNonce(options,user) {
             username: user.username,
             password: user.password
         }
-        console.log(obj)
         const ha1 = md5(`${user.username}:${realm}:${user.password}`)
         const ha2 = md5(`${options.method}:${options.url}`)
         const response = md5(`${ha1}:${nonce}:${nc}:${nonce}:auth:${ha2}`)
@@ -49,6 +46,9 @@ async function digestAuthFetchNonce(options,user) {
 
 }
 export async function createUser(userData) {
+    if (!(userData.hasOwnProperty('username')) || !(userData.hasOwnProperty('password'))){
+        return Promise.reject({message: "Not the right data"})
+    }
     const adminData = {
         username: process.env.MONGO_USERNAME,
         password: process.env.MONGO_APIKEY
@@ -75,22 +75,19 @@ export async function createUser(userData) {
             groupId: process.env.MONGO_PROJECT_ID
         },
     }
-
-    const authHeader = await digestAuthFetchNonce(options,adminData)
-    console.log(authHeader)
-
-    //const digest = auth.passhash('',process.env.MONGO_USERNAME,process.env.MONGO_APIKEY)
-
-    const result = await axios(
+    const authHeader = await digestGenerateHeader(options,adminData)
+    return await axios(
         Object.assign({},options,
         {
             headers: {
                 'Authorization': authHeader
             }
-        })).catch(res => {
-        return res.response.data
-    })
-    return result
+        })).then((res) => {
+            calls = 0
+            return res
+        })
+
+
 }
 export function fetchCollections() {
     return db.collections().then(res => res).catch(err => err.message)
