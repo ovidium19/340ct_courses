@@ -25,7 +25,6 @@ describe("Testing createUser", () => {
         axios.mockImplementation((options) => {
             return new Promise((resolve,reject) => {
                 if (options.hasOwnProperty('headers')){
-                    console.log(options)
                     resolve(options.headers['Authorization'])
                 }
                 else{
@@ -46,7 +45,6 @@ describe("Testing createUser", () => {
             password: 'test'
         }
         const result = await db.createUser(userData)
-        console.log(result)
         expect(/response=/g.test(result)).toBe(true)
         done()
     })
@@ -59,6 +57,37 @@ describe("Testing createUser", () => {
         }
         catch(result){
             expect(result.message).toBe('Not the right data')
+        }
+        done()
+    })
+})
+describe("Testing getCourseById", () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+
+    test("A document found should return the document", async done => {
+        const result = await db.getCourseById(1,user)
+        expect(result['_id']).toBe(1)
+        done()
+    })
+
+    test("If document not found, should return nothing", async done => {
+        const result = await db.getCourseById(2,user)
+        expect(result).toBe(undefined)
+        done()
+    })
+    test("If connection doesn't go through, get error", async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        try{
+            const result = await db.getCourseById(1,user)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
         }
         done()
     })

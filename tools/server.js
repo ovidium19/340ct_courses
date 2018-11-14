@@ -9,7 +9,6 @@ import mount from 'koa-mount'
 import path from 'path'
 import * as db from './modules/db-persist'
 import morgan from 'koa-morgan'
-
 import v1 from './versions/v1/v1'
 require('dotenv').config()
 const app = new koa()

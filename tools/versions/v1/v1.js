@@ -4,6 +4,7 @@ import Router from 'koa-router'
 import status from 'http-status-codes'
 import path from 'path'
 import users from './modules/users'
+import courses from './modules/courses'
 import mount from 'koa-mount'
 
 const app = new koa()
@@ -22,6 +23,7 @@ router.get('/',async ctx => {
 
 })
 app.use(mount('/user',users))
+app.use(mount('/courses',courses))
 app.use(router.routes())
 app.use(router.allowedMethods())
 

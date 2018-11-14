@@ -1,4 +1,4 @@
-import {MongoClient} from  'mongodb'
+import {MongoClient, ObjectID} from  'mongodb'
 import axios from 'axios'
 import md5 from 'md5'
 
@@ -89,8 +89,30 @@ export async function createUser(userData) {
 
 
 }
-export function fetchCollections() {
-    return db.collections().then(res => res).catch(err => err.message)
+
+export async function getCourseById(id,user){
+    let client
+    let result
+    try{
+        client = await connect(user)
+
+        let db = await client.db(process.env.MONGO_DBNAME)
+        let collection = await db.collection('courses')
+        let id_obj = new ObjectID(id)
+        result = await collection.findOne({_id: id_obj})
+    }
+    finally {
+        if (client){
+            client.close()
+        }
+    }
+    return result
+}
+export async function createCourse(course, user){
+
+}
+export function updateCourse(course, user){
+
 }
 
 
