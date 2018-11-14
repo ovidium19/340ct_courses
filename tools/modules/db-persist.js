@@ -110,6 +110,23 @@ export async function getCourseById(id,user){
 }
 export async function createCourse(course, user){
 
+    if (!course.hasOwnProperty('name')) throw new Error(`missing fields: name`)
+    let client
+    let result
+    course['_id'] = new ObjectID(course['_id'])
+    try{
+        client = await connect(user)
+
+        let db = await client.db(process.env.MONGO_DBNAME)
+        let collection = await db.collection('courses')
+        result = await collection.insertOne(course)
+    }
+    finally {
+        if (client){
+            client.close()
+        }
+    }
+    return result
 }
 export function updateCourse(course, user){
 

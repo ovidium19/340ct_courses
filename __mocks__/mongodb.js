@@ -5,7 +5,12 @@ const dbs = {
 const data = [
     {
         s: {
-            name: 'users'
+            name: 'users',
+            documents: [{
+                _id: 1,
+                username: "test",
+                password: "test"
+            }]
 
             }
 
@@ -30,10 +35,16 @@ class Collection {
             let result = this.data.s.documents.find(d => d.hasOwnProperty('_id') && d['_id'] == query['_id'].id)
             resolve(result)
         })
-
-
+    }
+    insertOne(course){
+        if (this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error('Course ID already exists')
+        return new Promise((resolve) => {
+            this.data.s.documents.push(course)
+            resolve(this.data.s.documents.find(c => c['_id'] == course['_id']))
+        })
     }
 }
+
 class MongoDB {
     constructor(name) {
         this.name = name
@@ -84,6 +95,7 @@ export class MongoClient {
     static connect(con,options) {
         return new Promise((resolve,reject) => {
             if (options.auth.user == 'forceError') reject(new Error('Connection not established'))
+            if (options.auth.user !== 'test' && options.auth.password !== 'test') reject(new Error('Authentication failed'))
             resolve(new MongoDBClient())
         })
     }
