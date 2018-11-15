@@ -93,19 +93,15 @@ export async function createUser(userData) {
 export async function getCourseById(id,user){
     let client
     let result
-    try{
-        client = await connect(user)
 
-        let db = await client.db(process.env.MONGO_DBNAME)
-        let collection = await db.collection('courses')
-        let id_obj = new ObjectID(id)
-        result = await collection.findOne({_id: id_obj})
-    }
-    finally {
-        if (client){
-            client.close()
-        }
-    }
+    client = await connect(user)
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection('courses')
+    result = await collection.findOne(id)
+    console.log(result)
+    await client.close()
+
+
     return result
 }
 export async function createCourse(course, user){
@@ -114,21 +110,33 @@ export async function createCourse(course, user){
     let client
     let result
     course['_id'] = new ObjectID(course['_id'])
-    try{
-        client = await connect(user)
 
-        let db = await client.db(process.env.MONGO_DBNAME)
-        let collection = await db.collection('courses')
-        result = await collection.insertOne(course)
-    }
-    finally {
-        if (client){
-            client.close()
-        }
-    }
+    client = await connect(user)
+
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection('courses')
+    result = await collection.insertOne(course)
+
+    await client.close()
+
     return result
 }
-export function updateCourse(course, user){
+export async function updateCourse(course, user){
+    if (!course.hasOwnProperty('name')) throw new Error(`missing fields: name`)
+    let client
+    let result
+    course['_id'] = new ObjectID(course['_id'])
+    console.log(course['_id'])
+
+    client = await connect(user)
+
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection('courses')
+    result = await collection.find({"_id": ObjectID(course['_id'])})
+    //result = await collection.replaceOne({"_id": course['_id']},course)
+    await client.close()
+    return result
+
 
 }
 

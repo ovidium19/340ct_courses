@@ -26,10 +26,11 @@ router.get('/',async ctx => {
     }
     catch(err) {
         ctx.status = status.NOT_FOUND
-		ctx.body = {status: 'error', message: err.message}
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })
 router.post('/', async ctx => {
+    ctx.set('Allow','GET, POST')
     const course = ctx.request.body
     try{
         const result = await db.createCourse(course,adminUser)
@@ -41,11 +42,25 @@ router.post('/', async ctx => {
     }
 })
 router.get('/:id', async ctx => {
-    ctx.set('Allow','GET')
+    ctx.set('Allow','GET, POST')
     //Read Authorization Header, check json web token, send to db-persist.js for fetching data
     //call db.getCourseById
     try{
         const result = await db.getCourseById(ctx.params.id, adminUser)
+        ctx.body = result
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+        ctx.body = Object.assign({},ctx.params,ctx.query,{status: status.BAD_REQUEST, message: err.message})
+    }
+    //send response
+})
+router.post('/:id', async ctx => {
+    ctx.set('Allow','GET, POST')
+    //Read Authorization Header, check json web token, send to db-persist.js for fetching data
+    //call db.getCourseById
+    try{
+        const result = await db.updateCourse(ctx.request.body, adminUser)
         ctx.body = result
     }
     catch(err) {

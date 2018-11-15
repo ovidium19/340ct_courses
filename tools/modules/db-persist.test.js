@@ -34,7 +34,7 @@ describe("Testing connection", () => {
     }
     test("If authentication succeeds, course should be available", async done => {
         const result = await db.getCourseById(1,correctUser)
-        expect(result['_id']).toBe(1)
+        expect(result['_id'].id).toBe(1)
         done()
     })
 
@@ -98,7 +98,7 @@ describe("Testing getCourseById", () => {
 
     test("A document found should return the document", async done => {
         const result = await db.getCourseById(1,user)
-        expect(result['_id']).toBe(1)
+        expect(result['_id'].id).toBe(1)
         done()
     })
 
@@ -165,42 +165,47 @@ describe("Testing db.createCourse(course,user)", () => {
         done()
     })
 })
-/*
-describe('Testing Connection to db', () => {
 
-    test("After connect, database name is set to the parameter", async done => {
-        const result = await db.connect('collection')
-        expect(result.dbInstance.name).toEqual('collection')
+describe("Testing db.updateCourse(course,user)", () => {
+    const user = {
+        username: "test",
+        password: "test"
+    }
+    const course = {
+        _id: 1,
+        name: "updated"
+    }
+
+    test("Update course successfully", async done => {
+        const result = await db.updateCourse(course,user)
+        expect(result.name).toBe('updated')
+        done()
+    })
+
+    test("Course data doesn't match schema", async done => {
+        const course = {
+            _id: 3
+        }
+        try{
+            const result = await db.updateCourse(course,user)
+        }
+        catch(err){
+            expect(err.message).toBe(`missing fields: name`)
+        }
+        done()
+    })
+
+    test("Trying to update a course with an _id that doesn't exist results in error", async done => {
+        const course = {
+            _id: 5,
+            name: "TestCourse"
+        }
+        try{
+            const result = await db.updateCourse(course,user)
+        }
+        catch(err) {
+            expect(err.message).toBe(`Course doesn't exist`)
+        }
         done()
     })
 })
-
-describe('Testing all methods in db-persist',() => {
-    let testDb
-    let testClient
-    beforeAll(async () => {
-        testClient = await db.connect('collection')
-        testDb = testClient.dbInstance
-    })
-
-    test("Fetching collections should return the entire collection data", async done => {
-        const expected = getData()
-        const result = await db.fetchCollections()
-        expect(result).toEqual(expect.arrayContaining(expected))
-        done()
-    })
-    test("Fetching collections simulate error should return No data", async done => {
-        testDb.forceError = true
-        const result = await db.fetchCollections()
-        console.log(result)
-        expect(result).toBe('No data')
-        done()
-    })
-
-    test("Closing the Client should return the string 'closed'", async done=> {
-        const result = await db.close()
-        expect(result).toBe('closed')
-        done()
-    })
-})
-*/

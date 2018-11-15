@@ -2,12 +2,17 @@ const dbs = {
     users: 0,
     courses:1
 }
+export class ObjectID {
+    constructor(id) {
+        this.id = id
+    }
+}
 const data = [
     {
         s: {
             name: 'users',
             documents: [{
-                _id: 1,
+                _id: new ObjectID(1),
                 username: "test",
                 password: "test"
             }]
@@ -19,28 +24,42 @@ const data = [
         s: {
             name: 'courses',
             documents: [{
-                _id: 1,
+                _id: new ObjectID(1),
                 name: "Git"
             }]
         }
     }
 ]
+
+
 class Collection {
     constructor(name) {
-        this.data = data[dbs[name]]
+        this.data = Object.assign({},data[dbs[name]])
     }
 
     findOne(query) {
         return new Promise((resolve) => {
-            let result = this.data.s.documents.find(d => d.hasOwnProperty('_id') && d['_id'] == query['_id'].id)
+            let result = this.data.s.documents.find(d => d.hasOwnProperty('_id') && d['_id'].id == query['_id'].id)
             resolve(result)
         })
     }
     insertOne(course){
-        if (this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error('Course ID already exists')
+        if (this.data.s.documents.find(c => c['_id'].id == course['_id'].id)) throw new Error('Course ID already exists')
         return new Promise((resolve) => {
             this.data.s.documents.push(course)
-            resolve(this.data.s.documents.find(c => c['_id'] == course['_id']))
+            resolve(this.data.s.documents.find(c => c['_id'].id == course['_id'].id))
+        })
+    }
+    replaceOne(filter,course) {
+        if (!this.data.s.documents.find(c => c['_id'].id == course['_id'].id)) throw new Error(`Course doesn't exist`)
+        return new Promise((resolve) => {
+            const index = this.data.s.documents.findIndex(c => c['_id'].id == course['_id'].id)
+            if (index >= 0){
+                const removed = this.data.s.documents.splice(index,1,course)
+            }
+            const result = this.data.s.documents.find(c => c.name == course.name)
+
+            resolve(result)
         })
     }
 }
@@ -100,11 +119,7 @@ export class MongoClient {
         })
     }
 }
-export class ObjectID {
-    constructor(id) {
-        this.id = id
-    }
-}
+
 
 //for testing purposes
 export function getData() {
