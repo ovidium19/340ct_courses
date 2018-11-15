@@ -12,7 +12,7 @@ const data = [
         s: {
             name: 'users',
             documents: [{
-                _id: new ObjectID(1),
+                _id: 1,
                 username: "test",
                 password: "test"
             }]
@@ -24,7 +24,7 @@ const data = [
         s: {
             name: 'courses',
             documents: [{
-                _id: new ObjectID(1),
+                _id: 1,
                 name: "Git"
             }]
         }
@@ -39,21 +39,21 @@ class Collection {
 
     findOne(query) {
         return new Promise((resolve) => {
-            let result = this.data.s.documents.find(d => d.hasOwnProperty('_id') && d['_id'].id == query['_id'].id)
+            let result = this.data.s.documents.find(d => d.hasOwnProperty('_id') && d['_id'] == query['_id'])
             resolve(result)
         })
     }
     insertOne(course){
-        if (this.data.s.documents.find(c => c['_id'].id == course['_id'].id)) throw new Error('Course ID already exists')
+        if (this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error('Course ID already exists')
         return new Promise((resolve) => {
             this.data.s.documents.push(course)
-            resolve(this.data.s.documents.find(c => c['_id'].id == course['_id'].id))
+            resolve(this.data.s.documents.find(c => c['_id'] == course['_id']))
         })
     }
     replaceOne(filter,course) {
-        if (!this.data.s.documents.find(c => c['_id'].id == course['_id'].id)) throw new Error(`Course doesn't exist`)
+        if (!this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error(`Course doesn't exist`)
         return new Promise((resolve) => {
-            const index = this.data.s.documents.findIndex(c => c['_id'].id == course['_id'].id)
+            const index = this.data.s.documents.findIndex(c => c['_id']== course['_id'])
             if (index >= 0){
                 const removed = this.data.s.documents.splice(index,1,course)
             }

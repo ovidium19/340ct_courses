@@ -42,7 +42,7 @@ router.post('/', async ctx => {
     }
 })
 router.get('/:id', async ctx => {
-    ctx.set('Allow','GET, POST')
+    ctx.set('Allow','GET, PUT')
     //Read Authorization Header, check json web token, send to db-persist.js for fetching data
     //call db.getCourseById
     try{
@@ -55,8 +55,8 @@ router.get('/:id', async ctx => {
     }
     //send response
 })
-router.post('/:id', async ctx => {
-    ctx.set('Allow','GET, POST')
+router.put('/:id', async ctx => {
+    ctx.set('Allow','GET, PUT')
     //Read Authorization Header, check json web token, send to db-persist.js for fetching data
     //call db.getCourseById
     try{

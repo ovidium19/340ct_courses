@@ -34,7 +34,7 @@ describe("Testing connection", () => {
     }
     test("If authentication succeeds, course should be available", async done => {
         const result = await db.getCourseById(1,correctUser)
-        expect(result['_id'].id).toBe(1)
+        expect(result['_id']).toBe(1)
         done()
     })
 
@@ -98,7 +98,7 @@ describe("Testing getCourseById", () => {
 
     test("A document found should return the document", async done => {
         const result = await db.getCourseById(1,user)
-        expect(result['_id'].id).toBe(1)
+        expect(result['_id']).toBe(1)
         done()
     })
 
@@ -134,7 +134,7 @@ describe("Testing db.createCourse(course,user)", () => {
 
     test("Create course successfully", async done => {
         const result = await db.createCourse(course,user)
-        expect(result['_id'].id).toBe(2)
+        expect(result['_id']).toBe(2)
         done()
     })
 
@@ -146,7 +146,7 @@ describe("Testing db.createCourse(course,user)", () => {
             const result = await db.createCourse(course,user)
         }
         catch(err){
-            expect(err.message).toBe(`missing fields: name`)
+            expect(err.message).toBe(`wrong schema`)
         }
         done()
     })
@@ -190,7 +190,7 @@ describe("Testing db.updateCourse(course,user)", () => {
             const result = await db.updateCourse(course,user)
         }
         catch(err){
-            expect(err.message).toBe(`missing fields: name`)
+            expect(err.message).toBe('wrong schema')
         }
         done()
     })

@@ -97,8 +97,7 @@ export async function getCourseById(id,user){
     client = await connect(user)
     let db = await client.db(process.env.MONGO_DBNAME)
     let collection = await db.collection('courses')
-    result = await collection.findOne(id)
-    console.log(result)
+    result = await collection.findOne({"_id": parseInt(id)})
     await client.close()
 
 
@@ -106,10 +105,9 @@ export async function getCourseById(id,user){
 }
 export async function createCourse(course, user){
 
-    if (!course.hasOwnProperty('name')) throw new Error(`missing fields: name`)
+    if (!course.hasOwnProperty('name') || !course.hasOwnProperty('_id')) throw new Error(`wrong schema`)
     let client
     let result
-    course['_id'] = new ObjectID(course['_id'])
 
     client = await connect(user)
 
@@ -122,17 +120,13 @@ export async function createCourse(course, user){
     return result
 }
 export async function updateCourse(course, user){
-    if (!course.hasOwnProperty('name')) throw new Error(`missing fields: name`)
+    if (!course.hasOwnProperty('name') || !course.hasOwnProperty('_id')) throw new Error(`wrong schema`)
     let client
     let result
-    course['_id'] = new ObjectID(course['_id'])
-    console.log(course['_id'])
-
     client = await connect(user)
-
     let db = await client.db(process.env.MONGO_DBNAME)
     let collection = await db.collection('courses')
-    result = await collection.find({"_id": ObjectID(course['_id'])})
+    result = await collection.replaceOne({"_id": course['_id']},course)
     //result = await collection.replaceOne({"_id": course['_id']},course)
     await client.close()
     return result
