@@ -13,8 +13,8 @@ const data = [
             name: 'users',
             documents: [{
                 _id: 1,
-                username: "test",
-                password: "test"
+                username: 'test',
+                password: 'test'
             }]
 
             }
@@ -25,7 +25,7 @@ const data = [
             name: 'courses',
             documents: [{
                 _id: 1,
-                name: "Git"
+                name: 'Git'
             }]
         }
     }
@@ -51,7 +51,7 @@ class Collection {
         })
     }
     replaceOne(filter,course) {
-        if (!this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error(`Course doesn't exist`)
+        if (!this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error('Course doesn\'t exist')
         return new Promise((resolve) => {
             const index = this.data.s.documents.findIndex(c => c['_id']== course['_id'])
             if (index >= 0){

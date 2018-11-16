@@ -8,6 +8,11 @@ import * as db from '../../../modules/db-persist'
 
 const app = new koa()
 app.use(koaBP())
+app.use( async(ctx, next) => {
+    ctx.set('Access-Control-Allow-Origin', '*')
+    ctx.set('content-type','application/json')
+	await next()
+})
 const port = 3030
 const router = new Router()
 router.get('/',async ctx => {
@@ -15,7 +20,7 @@ router.get('/',async ctx => {
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
         ctx.status = status.OK
-        ctx.body = {path: "/api/v1/user - path"}
+        ctx.body = {path: '/api/v1/user - path'}
     }
     catch(err) {
         ctx.status = status.NOT_FOUND
@@ -24,8 +29,16 @@ router.get('/',async ctx => {
 })
 router.post('/create', async ctx => {
     const user = ctx.request.body
-    let res = await db.createUser(user)
-    ctx.body = res
+    try{
+        let res = await db.createUser(user)
+        ctx.body = res
+        ctx.status = status.CREATED
+    }
+    catch(err) {
+        ctx.status = status.NOT_MODIFIED
+        ctx.body = {status: status.NOT_MODIFIED, message: err.message}
+    }
+
     // try{
     //     let res = await db.createUser(user)
     //     ctx.body = res

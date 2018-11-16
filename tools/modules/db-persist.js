@@ -8,7 +8,7 @@ async function connect(user) {
     let conString = process.env.MONGO_CONNECTION_STRING
     let options = {
         ssl: true,
-        authSource: "admin",
+        authSource: 'admin',
         auth: {
             user: user.username,
             password: user.password
@@ -47,7 +47,7 @@ export async function digestGenerateHeader(options,user) {
 }
 export async function createUser(userData) {
     if (!(userData.hasOwnProperty('username')) || !(userData.hasOwnProperty('password'))){
-        return Promise.reject({message: "Not the right data"})
+        return Promise.reject({message: 'Not the right data'})
     }
     const adminData = {
         username: process.env.MONGO_USERNAME,
@@ -58,7 +58,7 @@ export async function createUser(userData) {
     const opt = {
         roles: [
             {
-                roleName: "readWrite",
+                roleName: 'readWrite',
                 databaseName: process.env.MONGO_DBNAME
             }
         ]
@@ -68,7 +68,7 @@ export async function createUser(userData) {
         url,
         baseURL,
         data: {
-            databaseName: "admin",
+            databaseName: 'admin',
             username: userData.username,
             password: userData.password,
             roles: opt.roles,
@@ -76,7 +76,7 @@ export async function createUser(userData) {
         },
     }
     const authHeader = await digestGenerateHeader(options,adminData)
-    return await axios(
+    return axios(
         Object.assign({},options,
         {
             headers: {
@@ -84,7 +84,7 @@ export async function createUser(userData) {
             }
         })).then((res) => {
             calls = 0
-            return res
+            return res.data
         })
 
 
@@ -97,7 +97,7 @@ export async function getCourseById(id,user){
     client = await connect(user)
     let db = await client.db(process.env.MONGO_DBNAME)
     let collection = await db.collection('courses')
-    result = await collection.findOne({"_id": parseInt(id)})
+    result = await collection.findOne({'_id': parseInt(id)})
     await client.close()
 
 
@@ -105,7 +105,7 @@ export async function getCourseById(id,user){
 }
 export async function createCourse(course, user){
 
-    if (!course.hasOwnProperty('name') || !course.hasOwnProperty('_id')) throw new Error(`wrong schema`)
+    if (!course.hasOwnProperty('name') || !course.hasOwnProperty('_id')) throw new Error('Course doesn\'t match schema')
     let client
     let result
 
@@ -120,18 +120,16 @@ export async function createCourse(course, user){
     return result
 }
 export async function updateCourse(course, user){
-    if (!course.hasOwnProperty('name') || !course.hasOwnProperty('_id')) throw new Error(`wrong schema`)
+    if (!course.hasOwnProperty('name') || !course.hasOwnProperty('_id')) throw new Error('Course doesn\'t match schema')
     let client
     let result
     client = await connect(user)
     let db = await client.db(process.env.MONGO_DBNAME)
     let collection = await db.collection('courses')
-    result = await collection.replaceOne({"_id": course['_id']},course)
+    result = await collection.replaceOne({'_id': course['_id']},course)
     //result = await collection.replaceOne({"_id": course['_id']},course)
     await client.close()
     return result
-
-
 }
 
 

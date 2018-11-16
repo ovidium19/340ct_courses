@@ -17,7 +17,7 @@
       "jest": true
     },
     "rules": {
-      "quotes": 0,
+      "quotes": [1,"single"],
       "no-console": 1,
       "no-debugger": 1,
       "no-unreachable": "off",
@@ -27,6 +27,7 @@
       "eol-last": 0,
       "no-unused-vars": 0,
       "no-underscore-dangle": 0,
+      "prefer-template": 1,
       "no-alert": 0,
       "no-lone-blocks": 0,
       "no-useless-escape": 0

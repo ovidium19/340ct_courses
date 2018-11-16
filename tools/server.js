@@ -11,6 +11,40 @@ import * as db from './modules/db-persist'
 import morgan from 'koa-morgan'
 import v1 from './versions/v1/v1'
 require('dotenv').config()
+const currentVersion = 'v1'
+const api_schema = {
+    base: 'http://localhost:3030/',
+    currentVersion: currentVersion,
+    routes: [
+        {
+            path: '/api',
+            description: 'Documentation for this api',
+            methods : 'GET'
+        },
+        {
+            path: `/api/${currentVersion}/user/create`,
+            methods: 'POST',
+            description: 'Create user in MongoDB with readWrite permission on database courses'
+        },
+        {
+            path: `/api/${currentVersion}/courses`,
+            method: 'POST',
+            description: 'Create a course and add it to MongoDB "courses" database'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:id`,
+            method: 'PUT',
+            description: 'Update course with specified id'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:id`,
+            method: 'GET',
+            description: 'Get course with specified id'
+        }
+
+    ]
+}
+
 const app = new koa()
 const port = 3030
 app.use(koaBP())
@@ -26,13 +60,7 @@ router.get('/api', async ctx => {
     ctx.status = status.OK
     try{
         if (ctx.get('error')) throw new Error(ctx.get('error'))
-        const collections = await db.fetchCollections()
-        const names = collections.map(c => {
-            return {
-                name: c.s.name
-            }
-        })
-        ctx.body = names
+        ctx.body = JSON.stringify(api_schema)
     }
     catch(err){
         ctx.status = status.NOT_FOUND

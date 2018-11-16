@@ -14,7 +14,7 @@ router.get('/',async ctx => {
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
         ctx.status = status.OK
-        ctx.body = {path: "/api/v1 - path"}
+        ctx.body = {path: '/api/v1 - path'}
     }
     catch(err) {
         ctx.status = status.NOT_FOUND

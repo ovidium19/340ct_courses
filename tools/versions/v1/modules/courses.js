@@ -15,6 +15,11 @@ const adminUser = {
 }
 const app = new koa()
 app.use(koaBP())
+app.use( async(ctx, next) => {
+    ctx.set('Access-Control-Allow-Origin', '*')
+    ctx.set('content-type','application/json')
+	await next()
+})
 const port = 3030
 const router = new Router()
 router.get('/',async ctx => {
@@ -22,7 +27,7 @@ router.get('/',async ctx => {
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
         ctx.status = status.OK
-        ctx.body = {path: "/api/v1/courses - path"}
+        ctx.body = {path: '/api/v1/courses - path'}
     }
     catch(err) {
         ctx.status = status.NOT_FOUND
@@ -38,7 +43,10 @@ router.post('/', async ctx => {
         ctx.body = result
     }
     catch(err){
-        ctx.body = {status: status.NOT_MODIFIED, message: err.message}
+        console.log(`error: ${err.message}`)
+        ctx.status = status.UNPROCESSABLE_ENTITY
+        //ctx.response.message = err.message
+        ctx.body = {status: status.UNPROCESSABLE_ENTITY, message: err.message}
     }
 })
 router.get('/:id', async ctx => {
@@ -61,11 +69,12 @@ router.put('/:id', async ctx => {
     //call db.getCourseById
     try{
         const result = await db.updateCourse(ctx.request.body, adminUser)
+        ctx.status = status.OK
         ctx.body = result
     }
     catch(err) {
-        ctx.status = status.BAD_REQUEST
-        ctx.body = Object.assign({},ctx.params,ctx.query,{status: status.BAD_REQUEST, message: err.message})
+        ctx.status = status.UNPROCESSABLE_ENTITY
+        ctx.body = Object.assign({},ctx.params,ctx.query,{status: status.UNPROCESSABLE_ENTITY, message: err.message})
     }
     //send response
 })
