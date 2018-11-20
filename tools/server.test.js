@@ -13,7 +13,7 @@ In order to avoid this, we test all our modules in this one script, and close th
 test suite has been executed
 */
 async function runBeforeAll() {
-    console.log('Testing server')
+    console.log('Testing server!')
 }
 async function runAfterAll() {
     await server.close()
