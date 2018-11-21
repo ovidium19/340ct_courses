@@ -24,17 +24,26 @@ app.use( async(ctx, next) => {
     ctx.set('content-type','application/json')
 	await next()
 })
-const port = 3030
 const router = new Router()
-router.get('/',async ctx => {
-    ctx.set('Allow','GET, POST')
+router.get('/:username',async ctx => {
+    /*
+    query:
+        random=true .. random courses
+        category= .. specify category
+        tags = .. specify tags separated by a dot
+        page= .. specify page number
+        limit = .. how many items per page
+    */
+    ctx.set('Allow','GET')
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
         ctx.status = status.OK
-        ctx.body = {path: '/api/v1/courses - path'}
+        let options = {...ctx.params, ...ctx.query}
+        let res = await db.getCourses(options)
+        ctx.body = res
     }
     catch(err) {
-        ctx.status = status.NOT_FOUND
+        ctx.status = status.BAD_REQUEST
 		ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })

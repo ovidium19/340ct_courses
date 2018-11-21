@@ -6,7 +6,6 @@ import * as db from './modules/db-persist'
 import server from './server'
 import status from 'http-status-codes'
 import request from 'supertest'
-import Axios from 'axios';
 /*
 Normally I would have a test file for each different module, but because in each other module I would
 have to import the server script, then the server script will attempt to listen on the same port every time.

@@ -1,21 +1,54 @@
 import {MongoClient, ObjectID} from  'mongodb'
 import { connect } from './utils'
+import dotenv from 'dotenv'
+dotenv.config()
 
 
-const adminUser = {
+const basicUser = {
     username: process.env.MONGO_ADMIN_USERNAME,
     password: process.env.MONGO_ADMIN_PASS
 }
-
+async function getClientAndCollection(user,dbName,colName) {
+    let client = await connect(user)
+    let db = await client.db(dbName)
+    let collection = await db.collection(colName)
+    return {client, collection}
+}
 export async function getCourses(options) {
+    let client = await connect(basicUser)
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    console.log(options)
+    let results
+    if (options.hasOwnProperty('random')){
+        let cursor = await collection.aggregate([
 
+
+            { $project: {
+                'content': 0
+            }},
+            { $project: {
+                'ratings': { $filter: {
+                    'input': '$ratings',
+                    'as': 'rat',
+                    'cond': { $eq: ['$$rat.username', options.username]}
+                }}
+            }},
+            { $match: { published: true } },
+            { $sample: { size: 5 }}
+        ])
+        results = await cursor.toArray()
+    }
+
+    await client.close()
+    return results
 }
 
 export async function getCourseById(id){
     let client
     let result
 
-    client = await connect(user)
+    client = await connect(basicUser)
     let db = await client.db(process.env.MONGO_DBNAME)
     let collection = await db.collection('courses')
     result = await collection.findOne({'_id': parseInt(id)})
