@@ -7,6 +7,7 @@ import path from 'path'
 import * as db from '../../../modules/db-persist'
 import dotenv from 'dotenv'
 
+
 dotenv.config()
 
 const adminUser = {
@@ -14,7 +15,10 @@ const adminUser = {
     password: process.env.MONGO_ADMIN_PASS
 }
 const app = new koa()
+
 app.use(koaBP())
+
+
 app.use( async(ctx, next) => {
     ctx.set('Access-Control-Allow-Origin', '*')
     ctx.set('content-type','application/json')
