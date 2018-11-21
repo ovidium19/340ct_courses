@@ -4,7 +4,7 @@ import Router from 'koa-router'
 import koabp from 'koa-bodyparser'
 import status from 'http-status-codes'
 import path from 'path'
-import * as db from '../../../modules/db-persist'
+import * as db from '../../../modules/courses-persist'
 import dotenv from 'dotenv'
 
 
