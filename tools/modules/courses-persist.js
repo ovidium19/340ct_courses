@@ -2,48 +2,46 @@ import {MongoClient, ObjectID} from  'mongodb'
 import { connect } from './utils'
 import dotenv from 'dotenv'
 dotenv.config()
-
-
 const basicUser = {
     username: process.env.MONGO_ADMIN_USERNAME,
     password: process.env.MONGO_ADMIN_PASS
 }
-async function getClientAndCollection(user,dbName,colName) {
-    let client = await connect(user)
-    let db = await client.db(dbName)
-    let collection = await db.collection(colName)
-    return {client, collection}
-}
+
 export async function getCourses(options) {
-    let client = await connect(basicUser)
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+
     let db = await client.db(process.env.MONGO_DBNAME)
     let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
-    console.log(options)
-    let results
+    let aggPipe =  [
+        { $addFields: {
+        'avg_rating': { $avg: '$ratings.rating' }
+                }
+        },
+        { $project: {
+            'content': 0
+        }},
+        { $match: { published: true } }]
     if (options.hasOwnProperty('random')){
-        let cursor = await collection.aggregate([
+        aggPipe.push({$sample: {size: 5}})
+    }
+    else {
+        if (options.hasOwnProperty('category')){
+            aggPipe[2].$match.category = options.category
+        }
 
-
-            { $project: {
-                'content': 0
-            }},
-            { $project: {
-                'ratings': { $filter: {
-                    'input': '$ratings',
-                    'as': 'rat',
-                    'cond': { $eq: ['$$rat.username', options.username]}
-                }}
-            }},
-            { $match: { published: true } },
-            { $sample: { size: 5 }}
-        ])
-        results = await cursor.toArray()
+        if (options.hasOwnProperty('page') && options.hasOwnProperty('limit')){
+            aggPipe.push({$skip: (options.page-1) * parseInt(options.limit)})
+            aggPipe.push({$limit: parseInt(options.limit)})
+        }
     }
 
+    let cursor = await collection.aggregate(aggPipe,options)
+    let results = await cursor.toArray()
     await client.close()
     return results
 }
 
+/*
 export async function getCourseById(id){
     let client
     let result
@@ -86,4 +84,4 @@ export async function updateCourse(course, user){
     return result
 }
 
-
+*/

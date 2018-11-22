@@ -1,21 +1,84 @@
 let axios = require('axios')
 jest.mock('mongodb')
 jest.mock('axios')
-import * as db from './db-persist'
+import * as db from './courses-persist'
 import dotenv from 'dotenv'
-import { getData } from 'mongodb'
-const course = {
-    _id: 432343,
-    name: 'TestCourse'
-}
 dotenv.config()
-let adminUser = {
-    username: process.env.MONGO_ADMIN_USERNAME,
-    password: process.env.MONGO_ADMIN_PASSWORD
-}
 
 
+describe('Testing getCourses()', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        test: {
+            func: 'getCourses',
+            skip: 0,
+            limit: 5,
+            random: false
+        }
+    }
 
+    test('Five documents should be returned if random is set', async done => {
+        let optionsRandom = Object.assign({},options,{random:true})
+        optionsRandom.test.random = true
+        const results = await db.getCourses(optionsRandom)
+        expect(results.length).toBe(5)
+        done()
+    })
+
+    test('Get a list of documents with length equal to limit', async done => {
+        const results = await db.getCourses(options)
+        expect(results.length).toBe(5)
+        done()
+    })
+    test('If category is a parameter, all documents have this category', async done => {
+        const newOptions = {
+            category: 'git',
+            test: {
+                func: 'getCourses',
+                skip: 0,
+                limit: 5,
+                random: false,
+                cat: 'git'
+            }
+        }
+        const results = await db.getCourses(newOptions)
+        expect(results.length).toBe(5)
+        expect(results.every(e => e.category == 'git')).toBe(true)
+        done()
+    })
+    test('If page and limit are specified, expect some results to be skipped', async done => {
+        const newOptions = {
+            page: 2,
+            limit: 5,
+            test: {
+                func: 'getCourses',
+                skip: 5,
+                limit: 5,
+                random: false,
+            }
+        }
+        const results = await db.getCourses(newOptions)
+        expect(results[0]['_id']).toBe(6)
+        done()
+    })
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        const newOptions = Object.assign({},options,{user})
+        try{
+            const result = await db.getCourses(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+})
 /*
 db-persist should have the following API:
     createUser(userData,userLogin) -> returns user if successful, error message if not
@@ -23,74 +86,32 @@ db-persist should have the following API:
     createCourse(courseData,user) -> returns course if successful, error message if not
     collections(user) -> returns collections in db
 */
-describe('Testing connection', () => {
-    const correctUser = {
-        username: 'test',
-        password: 'test'
-    }
-    const wrongUser = {
-        username: 'wrong',
-        password: 'wrong'
-    }
-    test('If authentication succeeds, course should be available', async done => {
-        const result = await db.getCourseById(1,correctUser)
-        expect(result['_id']).toBe(1)
-        done()
-    })
+// describe('Testing connection', () => {
+//     const correctUser = {
+//         username: 'test',
+//         password: 'test'
+//     }
+//     const wrongUser = {
+//         username: 'wrong',
+//         password: 'wrong'
+//     }
+//     test('If authentication succeeds, course should be available', async done => {
+//         const result = await db.getCourseById(1,correctUser)
+//         expect(result['_id']).toBe(1)
+//         done()
+//     })
 
-    test('If wrong user, authentication fails', async done => {
-        try{
-            const result = await db.getCourseById(1,wrongUser)
-        }
-        catch(err){
-            expect(err.message).toBe('Authentication failed')
-        }
-        done()
-    })
-})
-describe('Testing createUser', () => {
-    beforeAll(() => {
-        axios.mockImplementation((options) => {
-            return new Promise((resolve,reject) => {
-                if (options.hasOwnProperty('headers')){
-                    resolve({data: options.headers['Authorization']})
-                }
-                else{
-                    reject({
-                        response: {
-                            headers: {
-                                'www-authenticate': 'Digest realm="MMS Public API", domain="", nonce="testnonce", algorithm=MD5, qop="auth", stale=false'
-                            }
-                        }
-                    })
-                }
-            })
-        })
-    })
-    test('If successfull, result should have a \'response=\' field in its authorization header', async done => {
-        const userData = {
-            username: 'test',
-            password: 'test'
-        }
-        const result = await db.createUser(userData)
-        console.log(result)
-        expect(/response=/g.test(result)).toBe(true)
-        done()
-    })
-    test('if userData does not have the right schema, provide error message', async done => {
-        const userData = {
-            nofields: true
-        }
-        try{
-            const result = await db.createUser(userData)
-        }
-        catch(result){
-            expect(result.message).toBe('Not the right data')
-        }
-        done()
-    })
-})
-
+//     test('If wrong user, authentication fails', async done => {
+//         try{
+//             const result = await db.getCourseById(1,wrongUser)
+//         }
+//         catch(err){
+//             expect(err.message).toBe('Authentication failed')
+//         }
+//         done()
+//     })
+// })
+/*
 describe('Testing getCourseById', () => {
     const user = {
         username: 'test',
@@ -210,3 +231,4 @@ describe('Testing db.updateCourse(course,user)', () => {
         done()
     })
 })
+*/

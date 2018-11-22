@@ -6,14 +6,7 @@ import status from 'http-status-codes'
 import path from 'path'
 import * as db from '../../../modules/courses-persist'
 import dotenv from 'dotenv'
-
-
 dotenv.config()
-
-const adminUser = {
-    username: process.env.MONGO_ADMIN_USERNAME,
-    password: process.env.MONGO_ADMIN_PASS
-}
 const app = new koa()
 
 app.use(koaBP())
@@ -37,9 +30,10 @@ router.get('/:username',async ctx => {
     ctx.set('Allow','GET')
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
-        ctx.status = status.OK
+
         let options = {...ctx.params, ...ctx.query}
         let res = await db.getCourses(options)
+        ctx.status = status.OK
         ctx.body = res
     }
     catch(err) {
@@ -47,6 +41,7 @@ router.get('/:username',async ctx => {
 		ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })
+/*
 router.post('/', async ctx => {
     ctx.set('Allow','GET, POST')
     const course = ctx.request.body
@@ -91,6 +86,7 @@ router.put('/:id', async ctx => {
     }
     //send response
 })
+*/
 
 app.use(router.routes())
 app.use(router.allowedMethods())

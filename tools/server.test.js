@@ -1,8 +1,8 @@
 let axios = require('axios')
 jest.mock('mongodb')
-jest.mock('./modules/db-persist')
+jest.mock('./modules/courses-persist')
 jest.mock('axios')
-import * as db from './modules/db-persist'
+import * as db from './modules/courses-persist'
 import server from './server'
 import status from 'http-status-codes'
 import request from 'supertest'
@@ -94,6 +94,46 @@ describe('GET /api/v1', () => {
     test('Resource is protected by authorization', async done => {
         const response = await request(server).get('/api/v1').expect(status.UNAUTHORIZED)
         expect(response.body.message).toBe('Authorization failed')
+        done()
+    })
+})
+describe('GET /api/v1/courses/:username', () => {
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).get('/api/v1/courses/test').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		expect(response.header['content-type']).toContain('application/json')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).get('/api/v1/courses/test').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).get('/api/v1/courses/test').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('A list of courses is returned with no query params', async done => {
+        const response = await request(server).get('/api/v1/courses/test').set('auth','allow').expect(status.OK)
+        expect(response.body.length).toBeGreaterThanOrEqual(5)
+        done()
+    })
+    test('if pagination query, expect results to be paginated', async done => {
+        const response = await request(server).get('/api/v1/courses/test?page=2&limit=5').set('auth','allow').expect(status.OK)
+        expect(response.body[0]['_id']).toBe(6)
+        done()
+    })
+    test('if category is in the query, expect all results to have that category', async done => {
+        const response = await request(server).get('/api/v1/courses/test?category=git').set('auth','allow').expect(status.OK)
+        expect(response.body.every(c => c.category == 'git')).toBeTruthy()
         done()
     })
 })

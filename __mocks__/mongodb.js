@@ -1,3 +1,6 @@
+
+
+const _ = require('underscore')
 const dbs = {
     users: 0,
     courses:1
@@ -23,14 +26,62 @@ const data = [
     {
         s: {
             name: 'courses',
-            documents: [{
-                _id: 1,
-                name: 'Git'
-            }]
+            documents: [
+                {
+                    _id: 1,
+                    name: 'Git',
+                    username: 'test',
+                    category: 'not-git',
+                    published: true
+                },
+                {
+                    _id: 2,
+                    name: 'Git',
+                    username: 'test',
+                    category: 'git',
+                    published: true
+                },
+                {
+                    _id: 3,
+                    name: 'Git',
+                    username: 'test',
+                    category: 'git',
+                    published: true
+                },
+                {
+                    _id: 4,
+                    name: 'Git',
+                    username: 'test',
+                    category: 'git',
+                    published: true
+                },
+                {
+                    _id: 5,
+                    name: 'Git',
+                    username: 'test',
+                    category: 'git',
+                    published: true
+                },
+                {
+                    _id: 6,
+                    name: 'Git',
+                    username: 'test',
+                    category: 'git',
+                    published: true
+                },
+        ]
         }
     }
 ]
 
+export class Cursor {
+    constructor(list) {
+        this.list = list
+    }
+    toArray() {
+        return Promise.resolve(this.list)
+    }
+}
 
 class Collection {
     constructor(name) {
@@ -61,6 +112,34 @@ class Collection {
 
             resolve(result)
         })
+    }
+    aggregate(pipe,options) {
+        let db_data = this.data.s.documents
+        switch (options.test.func) {
+            case 'getCourses': {
+                if (options.test.hasOwnProperty('random') && options.test.random){
+                    return new Cursor(_.sample(db_data,5))
+                }
+                else{
+                    let data = db_data.reduce((p,c) => {
+                        if (p.values.length>=options.test.limit) return p //we reached page limit, return
+                        if (options.test.cat && !(c.category == options.test.cat)) return p // check if category was a parameter
+                        if (p.skipped < options.test.skip) return { //check if we skipped enough documents
+                            values: Array.from(p.values),
+                            skipped: p.skipped + 1
+                        }
+                        return {
+                            values: p.values.concat([Object.assign({},c)]),
+                            skipped: p.skipped
+                        }
+                    },{
+                        values: [],
+                        skipped: 0
+                    })
+                    return new Cursor(data.values)
+                }
+            }
+        }
     }
 }
 
@@ -114,7 +193,6 @@ export class MongoClient {
     static connect(con,options) {
         return new Promise((resolve,reject) => {
             if (options.auth.user == 'forceError') reject(new Error('Connection not established'))
-            if (options.auth.user !== 'test' && options.auth.password !== 'test') reject(new Error('Authentication failed'))
             resolve(new MongoDBClient())
         })
     }
