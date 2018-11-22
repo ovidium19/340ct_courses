@@ -7,27 +7,52 @@ const users = [
 const courses = [
     {
         _id: 1,
-        name: 'CourseTest'
-    }
-]
-export async function createUser(userData) {
-    return new Promise((resolve,reject) => {
-        if (!(userData.hasOwnProperty('username')) || !(userData.hasOwnProperty('password'))){
-            reject({message: 'Not the right data'})
-        }
-        if (users.find(u => u.username == userData.username)){
-            reject({message: 'Username is in use'})
-        }
-        users.push(userData)
-        resolve(users.find(u => u.username == userData.username))
-    })
-}
-export async function getCourseById(id,user){
+        name: 'CourseTest',
+        category: 'not-git'
+    },
+    {
+        _id: 2,
+        name: 'CourseTest',
+        category: 'git'
+    },
+    {
+        _id: 3,
+        name: 'CourseTest',
+        category: 'git'
+    },
+    {
+        _id: 4,
+        name: 'CourseTest',
+        category: 'git'
+    },
+    {
+        _id: 5,
+        name: 'CourseTest',
+        category: 'git'
+    },
+    {
+        _id: 6,
+        name: 'CourseTest',
+        category: 'git'
+    },
 
-    if (!(users.find(u => u.username == user.username && u.password == user.password))) throw new Error('Authentication failed')
-    let course = courses.find(c => c['_id'] == id)
-    if (!course) throw new Error('Course not found')
-    return course
+]
+export async function getCourses(options){
+    let filteredCourses = Array.from(courses)
+    if (options.category) {
+        filteredCourses = filteredCourses.filter(c => c.category == options.category)
+    }
+    if (options.page && options.limit){
+        let start = (options.page-1) * options.limit
+        return filteredCourses.slice(start,start+options.limit)
+    }
+    return filteredCourses
+}
+export async function getCourseById(options){
+
+    let course = courses.find(c => c['_id'] == options.id)
+    if (!course) return []
+    return [course]
 
 }
 

@@ -1,30 +1,20 @@
-/*
-eslint no-console: off
-*/
 import koa from 'koa'
 import koaBP from 'koa-bodyparser'
 import Router from 'koa-router'
 import status from 'http-status-codes'
 import mount from 'koa-mount'
-import path from 'path'
-import * as db from './modules/db-persist'
 import morgan from 'koa-morgan'
 import v1 from './versions/v1/v1'
 require('dotenv').config()
 const currentVersion = 'v1'
 const api_schema = {
-    base: 'http://localhost:3030/',
+    base: 'http://localhost:3031/',
     currentVersion: currentVersion,
     routes: [
         {
             path: '/api',
             description: 'Documentation for this api',
             methods : 'GET'
-        },
-        {
-            path: `/api/${currentVersion}/user/create`,
-            methods: 'POST',
-            description: 'Create user in MongoDB with readWrite permission on database courses'
         },
         {
             path: `/api/${currentVersion}/courses`,
@@ -46,7 +36,7 @@ const api_schema = {
 }
 
 const app = new koa()
-const port = 3030
+const port = 3031
 app.use(koaBP())
 app.use(morgan('tiny'))
 const router = new Router()
