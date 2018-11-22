@@ -1,12 +1,11 @@
 let axios = require('axios')
 jest.mock('mongodb')
-jest.mock('./modules/db-persist')
+jest.mock('./modules/courses-persist')
 jest.mock('axios')
-import * as db from './modules/db-persist'
+import * as db from './modules/courses-persist'
 import server from './server'
 import status from 'http-status-codes'
 import request from 'supertest'
-import Axios from 'axios';
 /*
 Normally I would have a test file for each different module, but because in each other module I would
 have to import the server script, then the server script will attempt to listen on the same port every time.
@@ -20,7 +19,6 @@ async function runBeforeAll() {
     axios.mockImplementation((options) => {
         return new Promise((resolve,reject) => {
             if (options.hasOwnProperty('headers')){
-                console.log(options.headers)
                 options.headers['auth'] == 'allow' ? resolve() : reject({message: 'Authorization failed'})
             }
             else{
@@ -95,6 +93,82 @@ describe('GET /api/v1', () => {
     test('Resource is protected by authorization', async done => {
         const response = await request(server).get('/api/v1').expect(status.UNAUTHORIZED)
         expect(response.body.message).toBe('Authorization failed')
+        done()
+    })
+})
+describe('GET /api/v1/courses/', () => {
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).get('/api/v1/courses').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		expect(response.header['content-type']).toContain('application/json')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).get('/api/v1/courses').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).get('/api/v1/courses').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('A list of courses is returned with no query params', async done => {
+        const response = await request(server).get('/api/v1/courses').set('auth','allow').expect(status.OK)
+        expect(response.body.length).toBeGreaterThanOrEqual(5)
+        done()
+    })
+    test('if pagination query, expect results to be paginated', async done => {
+        const response = await request(server).get('/api/v1/courses?page=2&limit=5').set('auth','allow').expect(status.OK)
+        expect(response.body[0]['_id']).toBe(6)
+        done()
+    })
+    test('if category is in the query, expect all results to have that category', async done => {
+        const response = await request(server).get('/api/v1/courses?category=git').set('auth','allow').expect(status.OK)
+        expect(response.body.every(c => c.category == 'git')).toBeTruthy()
+        done()
+    })
+})
+describe('Get /courses/:id', () => {
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).get('/api/v1/courses/1').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		expect(response.header['content-type']).toContain('application/json')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).get('/api/v1/courses/1').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).get('/api/v1/courses/1').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('In case of a successful call, get an array with 1 element, the course with provided id', async done => {
+        const response = await request(server).get('/api/v1/courses/1').set('auth','allow').expect(status.OK)
+        expect(response.body.length).toBe(1)
+        expect(response.body[0]['_id']).toBe(1)
+        done()
+    })
+    test('In case of a good call but no id found, get an empty array', async done => {
+        const response = await request(server).get('/api/v1/courses/15').set('auth','allow').expect(status.OK)
+        expect(response.body.length).toBe(0)
         done()
     })
 })
