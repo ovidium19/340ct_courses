@@ -1,6 +1,5 @@
 import {MongoClient} from 'mongodb'
-import axios from 'axios'
-import md5 from 'md5'
+
 export async function connect(user) {
     let conString = process.env.MONGO_CONNECTION_STRING
     let options = {
@@ -17,8 +16,8 @@ export async function connect(user) {
         return client
     })
 }
-/*
+
 export function schemaCheck(schema,data) {
     return Object.keys(schema).reduce((p,c,i) => p && data.hasOwnProperty(c), true)
 }
-*/
+

@@ -1,12 +1,19 @@
 import {MongoClient, ObjectID} from  'mongodb'
-import { connect } from './utils'
+import { connect, schemaCheck } from './utils'
 import dotenv from 'dotenv'
 dotenv.config()
 const basicUser = {
     username: process.env.MONGO_ADMIN_USERNAME,
     password: process.env.MONGO_ADMIN_PASS
 }
-
+const courseSchema = {
+    name: '',
+    username: '',
+    content: '',
+    published: '',
+    level: '',
+    category: ''
+}
 export async function getCourses(options) {
     let client = options.user ? await connect(options.user): await connect(basicUser)
 
@@ -114,6 +121,20 @@ export async function getCourseById(options) {
     //let result = await collection.findOne({'_id': ObjectID.createFromHexString(options.id)})
     await client.close(true)
     return results
+}
+export async function postCourse(options) {
+    if (!(schemaCheck(courseSchema,options.data))){
+        console.log('Throwing error')
+        throw new Error('Activity doesn\'t match schema')
+    }
+
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    let result = await collection.insertOne(options.data)
+    await client.close()
+    return {id: result.insertedId}
 }
 /*
 export async function getCourseById(id){

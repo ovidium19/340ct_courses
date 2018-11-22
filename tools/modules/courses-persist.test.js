@@ -122,6 +122,58 @@ describe('Testing getCourseById()', () => {
         done()
     })
 })
+describe('Testing postCourse', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        data: {
+            name: 'test',
+            username: 'test',
+            category: 'test',
+            content: [],
+            published: true
+        }
+    }
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        const goodOptions = Object.assign({},options)
+        goodOptions.data.level = 1
+
+        const newOptions = Object.assign({},goodOptions,{user})
+        try{
+            const result = await db.postCourse(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If course doesn\'t match schema, expect error', async done => {
+        try{
+            let result = await db.postCourse({data: {}})
+        }
+        catch(err){
+            console.log(err.message)
+            expect(err.message).toBe('Activity doesn\'t match schema')
+        }
+        done()
+    })
+    test('Expect the course id as result of a successful post', async done => {
+        const goodOptions = Object.assign({},options)
+        goodOptions.data.level = 1
+
+        const result = await db.postCourse(goodOptions)
+
+        expect(result.id).toBe(7)
+        done()
+    })
+})
 /*
 db-persist should have the following API:
     createUser(userData,userLogin) -> returns user if successful, error message if not

@@ -101,10 +101,8 @@ class Collection {
         })
     }
     insertOne(course){
-        if (this.data.s.documents.find(c => c['_id'] == course['_id'])) throw new Error('Course ID already exists')
         return new Promise((resolve) => {
-            this.data.s.documents.push(course)
-            resolve(this.data.s.documents.find(c => c['_id'] == course['_id']))
+            resolve({insertedId: this.data.s.documents.length+1})
         })
     }
     replaceOne(filter,course) {

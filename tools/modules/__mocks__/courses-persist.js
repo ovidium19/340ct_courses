@@ -55,7 +55,9 @@ export async function getCourseById(options){
     return [course]
 
 }
-
+export async function postCourse(options) {
+    return Promise.resolve({id: courses.length+1})
+}
 export async function createCourse(course,user){
     if (!(users.find(u => u.username == user.username && u.password == user.password))) throw new Error('Authentication failed')
     if (!course.hasOwnProperty('_id') || !course.hasOwnProperty('name')){
