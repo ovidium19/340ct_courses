@@ -48,12 +48,11 @@ export async function getCourses(options){
     }
     return filteredCourses
 }
-export async function getCourseById(id,user){
+export async function getCourseById(options){
 
-    if (!(users.find(u => u.username == user.username && u.password == user.password))) throw new Error('Authentication failed')
-    let course = courses.find(c => c['_id'] == id)
-    if (!course) throw new Error('Course not found')
-    return course
+    let course = courses.find(c => c['_id'] == options.id)
+    if (!course) return []
+    return [course]
 
 }
 

@@ -9,6 +9,9 @@ export class ObjectID {
     constructor(id) {
         this.id = id
     }
+    static createFromHexString(id){
+        return new ObjectID(id)
+    }
 }
 const data = [
     {
@@ -81,6 +84,9 @@ export class Cursor {
     toArray() {
         return Promise.resolve(this.list)
     }
+    close() {
+        return Promise.resolve()
+    }
 }
 
 class Collection {
@@ -138,6 +144,10 @@ class Collection {
                     })
                     return new Cursor(data.values)
                 }
+            }
+            case 'getCourseById': {
+                if (options.id <= db_data.length) return new Cursor([db_data[options.id - 1]])
+                return new Cursor([])
             }
         }
     }

@@ -79,6 +79,49 @@ describe('Testing getCourses()', () => {
         done()
     })
 })
+describe('Testing getCourseById()', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        id: 1,
+        username: 'test',
+        test: {
+            func: 'getCourseById',
+            skip: 0,
+            limit: 5,
+            username: 'test'
+        }
+    }
+
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        const newOptions = Object.assign({},options,{user})
+        try{
+            const result = await db.getCourseById(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If a correct id is supplied, expect 1 document with that id', async done => {
+        const results = await db.getCourseById(options)
+        expect(results.length).toBe(1)
+        expect(results[0]['_id']).toBe(1)
+        done()
+    })
+    test('If an incorrect id is supplied, expect empty array', async done => {
+        const results = await db.getCourseById(Object.assign({},options,{id: 15}))
+        expect(results.length).toBe(0)
+        done()
+    })
+})
 /*
 db-persist should have the following API:
     createUser(userData,userLogin) -> returns user if successful, error message if not

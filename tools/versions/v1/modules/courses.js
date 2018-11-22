@@ -18,7 +18,7 @@ app.use( async(ctx, next) => {
 	await next()
 })
 const router = new Router()
-router.get('/:username',async ctx => {
+router.get('/',async ctx => {
     /*
     query:
         random=true .. random courses
@@ -31,8 +31,21 @@ router.get('/:username',async ctx => {
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
 
+        let res = await db.getCourses({...ctx.query})
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
+router.get('/:id', async ctx => {
+    ctx.set('Allow','GET')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
         let options = {...ctx.params, ...ctx.query}
-        let res = await db.getCourses(options)
+        let res = await db.getCourseById(options)
         ctx.status = status.OK
         ctx.body = res
     }
