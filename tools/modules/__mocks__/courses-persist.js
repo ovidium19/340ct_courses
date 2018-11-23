@@ -61,7 +61,13 @@ const courses = [
         name: 'CourseTest',
         category: 'git'
     },
-
+]
+const grades = [
+    {
+        _id: 1,
+        username: 'test',
+        course_id: 1
+    }
 ]
 export async function getCourses(options){
     let filteredCourses = Array.from(courses)
@@ -151,4 +157,11 @@ export async function updateCourse(options){
         }
 
     })
+}
+export async function getAssessmentResultsForCourse(options) {
+    let results = grades.filter(g => g.course_id == options.course_id && g.username == options.username)
+    return results
+}
+export async function postGrades(options){
+    return Promise.resolve({id: grades.length+1})
 }
