@@ -280,114 +280,54 @@ describe('Put /courses/:id/progress', () => {
         done()
     })
 })
-/*
-describe('GET /api/v1/courses', () => {
+describe('Put /courses/:id/update', () => {
+    const update = {
+        username: 'test',
+        published: false,
+        level: 1
+    }
     beforeAll(runBeforeAll)
     afterAll(runAfterAll)
 
     test('check common response headers', async done => {
 		//expect.assertions(2)
-        const response = await request(server).get('/api/v1/courses')
+        const response = await request(server).put('/api/v1/courses/1/update').set('auth','allow')
         //expect(response.status).toBe(status.OK)
 		expect(response.header['access-control-allow-origin']).toBe('*')
-		expect(response.header['content-type']).toContain('application/json')
 		done()
     })
     test('check for NOT_FOUND status if database down', async done => {
-		const response = await request(server).get('/api/v1/courses')
+		const response = await request(server).put('/api/v1/courses/1/update').set('auth','allow')
 			.set('error', 'foo')
-        expect(response.status).toEqual(status.NOT_FOUND)
+        expect(response.status).toEqual(status.BAD_REQUEST)
 		const data = JSON.parse(response.text)
 		expect(data.message).toBe('foo')
 		done()
     })
-    test('check body for api/v1/courses', async done => {
-        const response = await request(server).get('/api/v1/courses')
-        expect(response.body).toEqual(expect.objectContaining({
-            path: '/api/v1/courses - path'
-        }))
+    test('This is a protected resource', async done => {
+        const response = await request(server).put('/api/v1/courses/1/update').expect(status.UNAUTHORIZED)
         done()
     })
-})
-describe('POST /api/v1/courses', () => {
-    beforeAll(runBeforeAll)
-    afterAll(runAfterAll)
+    test('If course not found, expect error', async done => {
 
-    test('check common response headers', async done => {
-		//expect.assertions(2)
-        const response = await request(server).post('/api/v1/courses')
-        //expect(response.status).toBe(status.OK)
-		expect(response.header['access-control-allow-origin']).toBe('*')
-		done()
-    })
-
-    test('if course doesn\'t have the right schema, get error', async done => {
-        const response = await request(server).post('/api/v1/courses')
-                                            .send({id: 1, name: 'Bel'})
-                                            .expect(status.UNPROCESSABLE_ENTITY)
+        const response = await request(server).put('/api/v1/courses/15/update').set('auth','allow').send(update).expect(status.BAD_REQUEST)
         console.log(response.body)
-        expect(response.body).toEqual(expect.objectContaining({message:'Course doesn\'t match schema' }))
-        done()
-    })
-    test('if successful, return value should be the course data', async done => {
-        const response = await request(server).post('/api/v1/courses')
-                                            .send({_id: 2, name: 'Bel'})
-                                            .expect(status.ACCEPTED)
-        expect(response.body).toEqual(expect.objectContaining({name: 'Bel'}))
-        done()
-    })
-})
-describe('GET /api/v1/courses/:id', () => {
-    beforeAll(runBeforeAll)
-    afterAll(runAfterAll)
-
-    test('check common response headers', async done => {
-		//expect.assertions(2)
-        const response = await request(server).get('/api/v1/courses/1')
-        //expect(response.status).toBe(status.OK)
-		expect(response.header['access-control-allow-origin']).toBe('*')
-		expect(response.header['content-type']).toContain('application/json')
-		done()
-    })
-    test('If course doesn\'t exist, receive error', async done => {
-        const response = await request(server).get('/api/v1/courses/5')
         expect(response.body.message).toBe('Course not found')
         done()
     })
-    test('If successful, receive course data', async done => {
-        const response = await request(server).get('/api/v1/courses/1')
-        expect(response.body).toEqual(expect.objectContaining({_id: 1}))
+    test('Expect course to be updated in case it exists', async done => {
+        const response = await request(server).put('/api/v1/courses/1/update').set('auth','allow').send(update).expect(status.OK)
+        expect(response.body.ok).toBe(1)
+        expect(response.body.data.level).toBe(1)
+        expect(response.body.data.ratings.length).toBeGreaterThan(0)
+        done()
+    })
+    test('if contentChanged param is passed, expect course to be updated and ratings and progress reset', async done => {
+        const response = await request(server).put('/api/v1/courses/2/update?contentChanged=true').set('auth','allow').send(update).expect(status.OK)
+        expect(response.body.ok).toBe(1)
+        expect(response.body.data.level).toBe(1)
+        expect(response.body.data.ratings.length).toBe(0)
         done()
     })
 })
 
-describe('PUT /api/v1/courses/:id', () => {
-    beforeAll(runBeforeAll)
-    afterAll(runAfterAll)
-
-    test('check common response headers', async done => {
-		//expect.assertions(2)
-        const response = await request(server).put('/api/v1/courses/1')
-        //expect(response.status).toBe(status.OK)
-		expect(response.header['access-control-allow-origin']).toBe('*')
-		expect(response.header['content-type']).toContain('application/json')
-		done()
-    })
-
-    test('If course doesn\'t exist, receive error', async done => {
-        const response = await request(server).put('/api/v1/courses/5')
-                                .send({_id: 5, name: 'changed'})
-                                .expect(status.UNPROCESSABLE_ENTITY)
-        expect(response.body.message).toBe('Course not found')
-        done()
-    })
-
-    test('If successful, receive course data', async done => {
-        const response = await request(server).put('/api/v1/courses/1')
-                    .send({_id: 1, name: 'changed'})
-                    .expect(status.OK)
-        expect(response.body).toEqual(expect.objectContaining({name: 'changed'}))
-        done()
-    })
-})
-*/

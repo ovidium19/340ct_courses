@@ -159,7 +159,7 @@ describe('Testing postCourse', () => {
             let result = await db.postCourse({data: {}})
         }
         catch(err){
-            console.log(err.message)
+
             expect(err.message).toBe('Activity doesn\'t match schema')
         }
         done()
@@ -212,7 +212,7 @@ describe('Testing rateCourse', () => {
             let result = await db.rateCourse({data: {}})
         }
         catch(err){
-            console.log(err.message)
+
             expect(err.message).toBe('Rating doesn\'t match schema')
         }
         done()
@@ -273,7 +273,7 @@ describe('Testing progressCourse', () => {
             let result = await db.progressCourse({data: {}})
         }
         catch(err){
-            console.log(err.message)
+
             expect(err.message).toBe('Progress doesn\'t match schema')
         }
         done()
@@ -294,6 +294,78 @@ describe('Testing progressCourse', () => {
         expect(result.value.finished).toBe(true)
         done()
     })
+})
+describe('Testing updateCourse', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        id: 1,
+        test: {
+            func: 'updateCourse'
+        },
+        data: {
+            _id: 1,
+            name: 'Git',
+            username: 'test',
+            category: 'not-git',
+            published: true,
+            content: [],
+            level: 1
+        }
+
+    }
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        const goodOptions = Object.assign({},options)
+        goodOptions.data.level = 1
+
+        const newOptions = Object.assign({},goodOptions,{user})
+        try{
+            const result = await db.updateCourse(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If course doesn\'t match schema, expect error', async done => {
+        try{
+            let result = await db.updateCourse({data: {}})
+        }
+        catch(err){
+
+            expect(err.message).toBe('Course doesn\'t match schema')
+        }
+        done()
+    })
+    test('If course not found, expect result.ok to be 0', async done => {
+        let result = await db.updateCourse(Object.assign({},options,{id: 15}))
+        expect(result.ok).toBe(0)
+        done()
+    })
+    test('If content was  changed, expect course to be updated and ratings and progress to be reset', async done => {
+        let result = await db.updateCourse(Object.assign({},options,{contentChanged: true, id: 2}))
+        expect(result.ok).toBe(1)
+        expect(result.data.category).toBe('not-git')
+        expect(result.data.ratings.length).toBe(0)
+        expect(result.data.progress.length).toBe(0)
+        done()
+    })
+    test('If content was not changed, expect result.ok to be 1 and ratings and progress unchanged', async done => {
+        let result = await db.updateCourse(options)
+        expect(result.ok).toBe(1)
+        expect(result.data.category).toBe('not-git')
+        expect(result.data.ratings.length).toBeGreaterThan(0)
+        expect(result.data.progress.length).toBeGreaterThan(0)
+        done()
+    })
+
 })
 /*
 db-persist should have the following API:

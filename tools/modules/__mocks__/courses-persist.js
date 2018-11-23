@@ -26,7 +26,20 @@ const courses = [
     {
         _id: 2,
         name: 'CourseTest',
-        category: 'git'
+        category: 'git',
+        ratings: [
+            {
+                username: 'test',
+                rating: 4
+            }
+        ],
+        progress: [
+            {
+                username: 'test',
+                finished: false,
+                current_page: 1
+            }
+        ]
     },
     {
         _id: 3,
@@ -94,7 +107,7 @@ export async function rateCourse(options){
 export async function progressCourse(options){
     return new Promise((resolve,reject) => {
         let course = courses.find(c => c['_id'] == options.id)
-        if (!(course)) reject('Course not found')
+        if (!(course)) reject({message: 'Course not found'})
 
         else{
             let courseProgress = course.progress.find(r => r.username == options.data.username)
@@ -111,23 +124,31 @@ export async function progressCourse(options){
 
     })
 }
-export async function createCourse(course,user){
-    if (!(users.find(u => u.username == user.username && u.password == user.password))) throw new Error('Authentication failed')
-    if (!course.hasOwnProperty('_id') || !course.hasOwnProperty('name')){
-        console.log('Course doesn\'t match schema')
-        throw new Error('Course doesn\'t match schema')
-    }
-    courses.push(course)
-    return (courses.find(c => c.name == course.name))
-}
 
-export async function updateCourse(course,user){
-    if (!(users.find(u => u.username == user.username && u.password == user.password))) throw new Error('Authentication failed')
-    if (!course.hasOwnProperty('_id') || !course.hasOwnProperty('name')){
-        throw new Error('Course doesn\'t match schema')
-    }
-    let replacedCourse = courses.findIndex(c => c['_id'] == course['_id'])
-    if (replacedCourse < 0) throw new Error('Course not found')
-    courses.splice(replacedCourse,1,course)
-    return (courses.find(c => c.name == course.name))
+
+export async function updateCourse(options){
+    return new Promise((resolve,reject) => {
+        let course = courses.find(c => c['_id'] == options.id)
+        if (!(course)) reject({message: 'Course not found'})
+
+        else{
+            if (options.contentChanged){
+                let newCourse = Object.assign({},options.data)
+                newCourse.ratings = []
+                newCourse.progress = []
+                newCourse['_id'] = course['_id']
+                resolve({
+                    ok: 1,
+                    data: newCourse
+                })
+            }
+            else{
+                resolve({
+                    ok: 1,
+                    data: Object.assign({},course,options.data)
+                })
+            }
+        }
+
+    })
 }

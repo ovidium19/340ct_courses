@@ -199,6 +199,39 @@ class Collection {
             }
         }
     }
+    updateOne(filter,update,options){
+        let db_data = this.data.s.documents
+        switch (options.test.func) {
+            case 'updateCourse': {
+                let c = db_data.find(c => c['_id'] == options.id)
+                if (!(c)) return {result: {ok: 0}}
+                if (options.contentChanged) {
+                    let newCourse = Object.assign({},options.data)
+                    newCourse['_id'] = c['_id']
+                    newCourse.ratings = []
+                    newCourse.progress = []
+                    db_data.splice(c['_id']-1,1,newCourse)
+                    return {
+                        result: {
+                            ok: 1,
+                            data: db_data[newCourse['_id']-1]
+                        }
+                    }
+                }
+                else {
+                    Object.keys(options.data).map(k => {
+                        c[k] = options.data[k]
+                    })
+                    return {
+                        result: {
+                            ok: 1,
+                            data: c
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 class MongoDB {
