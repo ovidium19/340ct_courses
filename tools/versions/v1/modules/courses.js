@@ -3,7 +3,6 @@ import koaBP from 'koa-bodyparser'
 import Router from 'koa-router'
 import koabp from 'koa-bodyparser'
 import status from 'http-status-codes'
-import path from 'path'
 import * as db from '../../../modules/courses-persist'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -11,14 +10,8 @@ const app = new koa()
 
 app.use(koaBP())
 
-
-app.use( async(ctx, next) => {
-    ctx.set('Access-Control-Allow-Origin', '*')
-    ctx.set('content-type','application/json')
-	await next()
-})
 const router = new Router()
-router.get('/',async ctx => {
+router.get('/', async ctx => {
     /*
     query:
         random=true .. random courses
@@ -27,11 +20,25 @@ router.get('/',async ctx => {
         page= .. specify page number
         limit = .. how many items per page
     */
-    ctx.set('Allow','GET')
+    ctx.set('Allow','GET, POST')
     try {
         if (ctx.get('error')) throw new Error(ctx.get('error'))
 
         let res = await db.getCourses({...ctx.query})
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
+router.post('/create', async ctx => {
+    ctx.set('Allow','POST')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
+
+        let res = await db.postCourse({data: ctx.request.body})
         ctx.status = status.OK
         ctx.body = res
     }
@@ -54,6 +61,52 @@ router.get('/:id', async ctx => {
 		ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })
+router.put('/:id/rate', async ctx => {
+    ctx.set('Allow','PUT')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
+        let options = {...ctx.params, ...ctx.query}
+        options.data = ctx.request.body
+        let res = await db.rateCourse(options)
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
+router.put('/:id/progress', async ctx => {
+    ctx.set('Allow','PUT')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
+        let options = {...ctx.params, ...ctx.query}
+        options.data = ctx.request.body
+        let res = await db.progressCourse(options)
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
+router.put('/:id/update', async ctx => {
+    ctx.set('Allow','PUT')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
+        let options = {...ctx.params, ...ctx.query}
+        options.data = ctx.request.body
+        let res = await db.updateCourse(options)
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
+//TODO: Put routes for /rate, /progress, /update
 /*
 router.post('/', async ctx => {
     ctx.set('Allow','GET, POST')
