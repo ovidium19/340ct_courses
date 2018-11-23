@@ -14,6 +14,15 @@ const courseSchema = {
     level: '',
     category: ''
 }
+const ratingSchema = {
+    username: '',
+    rating: ''
+}
+const progressSchema = {
+    username: '',
+    finished: '',
+    current_page: ''
+}
 export async function getCourses(options) {
     let client = options.user ? await connect(options.user): await connect(basicUser)
 
@@ -135,6 +144,92 @@ export async function postCourse(options) {
     let result = await collection.insertOne(options.data)
     await client.close()
     return {id: result.insertedId}
+}
+export async function rateCourse(options){
+    if (!(schemaCheck(ratingSchema,options.data))){
+        console.log('Throwing error')
+        throw new Error('Rating doesn\'t match schema')
+    }
+
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+    let result
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    let filter = {
+        '_id': ObjectID.createFromHexString(options.id),
+        'ratings': { $elemMatch : { 'username': options.data.username}}
+    }
+    let update = {
+        '$set': { 'ratings.$.rating': options.data.rating}
+    }
+    result = await collection.findOneAndUpdate(filter,update,options)
+    if (!result.value) {
+        let filter = {
+            '_id': ObjectID.createFromHexString(options.id)
+        }
+        let update = {
+            '$push': { 'ratings': options.data}
+        }
+        result = await collection.findOneAndUpdate(filter,update,options)
+    }
+    await client.close()
+    return result
+}
+export async function progressCourse(options){
+    if (!(schemaCheck(progressSchema,options.data))){
+        console.log('Throwing error')
+        throw new Error('Progress doesn\'t match schema')
+    }
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+    let result
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    let filter = {
+        '_id': ObjectID.createFromHexString(options.id),
+        'progress': { $elemMatch : { 'username': options.data.username}}
+    }
+    let update = {
+        '$set': { 'progress.$.finished': options.data.finished,'progress.$.current_page': options.data['current_page'] }
+    }
+    result = await collection.findOneAndUpdate(filter,update,options)
+    if (!(result.value)) {
+        let filter = {
+            '_id': ObjectID.createFromHexString(options.id)
+        }
+        let update = {
+            '$push': { 'progress': options.data}
+        }
+        result = await collection.findOneAndUpdate(filter,update,options)
+    }
+    await client.close()
+    return result
+}
+
+export async function updateCourse(options){
+    let partialCourse = options.data
+    if (!(schemaCheck(courseSchema,options.data))){
+        console.log('Throwing error')
+        throw new Error('Course doesn\'t match schema')
+    }
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+    let result
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    const updateFields = Object.keys(partialCourse).reduce((p,c,i) => {
+            if (['_id','ratings','progress'].indexOf(c)>=0) return p
+            p[c] = partialCourse[c]
+            return p
+    }, {})
+    if (options.contentChanged) {
+        //if course content changes, reset ratings and progress
+        updateFields.ratings = []
+        updateFields.progress =[]
+    }
+    const updates = { $set: updateFields}
+    const filter = {'_id': ObjectID.createFromHexString(options.id)}
+    result = await collection.updateOne(filter,updates,options)
+    await client.close()
+    return result['result']
 }
 /*
 export async function getCourseById(id){

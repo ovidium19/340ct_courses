@@ -35,14 +35,28 @@ const data = [
                     name: 'Git',
                     username: 'test',
                     category: 'not-git',
-                    published: true
+                    published: true,
+                    ratings: [
+                        {
+                            username: 'test',
+                            rating: 2
+                        }
+                    ],
+                    progress: [
+                        {
+                            username: 'test',
+                            finished: false,
+                            current_page: 1
+                        }
+                    ]
                 },
                 {
                     _id: 2,
                     name: 'Git',
                     username: 'test',
                     category: 'git',
-                    published: true
+                    published: true,
+                    ratings: []
                 },
                 {
                     _id: 3,
@@ -146,6 +160,75 @@ class Collection {
             case 'getCourseById': {
                 if (options.id <= db_data.length) return new Cursor([db_data[options.id - 1]])
                 return new Cursor([])
+            }
+        }
+    }
+    findOneAndUpdate(filter,update,options){
+        let db_data = this.data.s.documents
+        switch (options.test.func) {
+            case 'rateCourse': {
+                let course = db_data.find(c => c['_id'] == options.id)
+                let courseRating = course.ratings.find(r => r.username == options.data.username)
+                if (courseRating){
+                    courseRating.rating = options.data.rating
+                    return {value: courseRating}
+                }
+                else{
+                    if (filter.hasOwnProperty('ratings')){
+                        return {value: null}
+                    }
+                    course.ratings.push(options.data)
+                    return {value: course.ratings[course.ratings.length-1]}
+                }
+            }
+            case 'progressCourse': {
+                let course = db_data.find(c => c['_id'] == options.id)
+                let courseProgress = course.ratings.find(r => r.username == options.data.username)
+                if (courseProgress){
+                    courseProgress.finished = options.data.finished
+                    courseProgress['current_page'] = options.data['current_page']
+                    return {value: courseProgress}
+                }
+                else{
+                    if (filter.hasOwnProperty('progress')){
+                        return {value: null}
+                    }
+                    course.progress.push(options.data)
+                    return {value: course.progress[course.progress.length-1]}
+                }
+            }
+        }
+    }
+    updateOne(filter,update,options){
+        let db_data = this.data.s.documents
+        switch (options.test.func) {
+            case 'updateCourse': {
+                let c = db_data.find(c => c['_id'] == options.id)
+                if (!(c)) return {result: {ok: 0}}
+                if (options.contentChanged) {
+                    let newCourse = Object.assign({},options.data)
+                    newCourse['_id'] = c['_id']
+                    newCourse.ratings = []
+                    newCourse.progress = []
+                    db_data.splice(c['_id']-1,1,newCourse)
+                    return {
+                        result: {
+                            ok: 1,
+                            data: db_data[newCourse['_id']-1]
+                        }
+                    }
+                }
+                else {
+                    Object.keys(options.data).map(k => {
+                        c[k] = options.data[k]
+                    })
+                    return {
+                        result: {
+                            ok: 1,
+                            data: c
+                        }
+                    }
+                }
             }
         }
     }
