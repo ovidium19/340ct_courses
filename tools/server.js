@@ -18,20 +18,45 @@ const api_schema = {
         },
         {
             path: `/api/${currentVersion}/courses`,
-            method: 'POST',
-            description: 'Create a course and add it to MongoDB "courses" database'
-        },
-        {
-            path: `/api/${currentVersion}/courses/:id`,
-            method: 'PUT',
-            description: 'Update course with specified id'
+            method: 'GET',
+            params: 'username, page, limit, category, random',
+            description: 'Get courses from the database. Params greatly influence this method. If random is specified, you get 5 random courses'
         },
         {
             path: `/api/${currentVersion}/courses/:id`,
             method: 'GET',
-            description: 'Get course with specified id'
+            description: 'Get course by id'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:course_id/assessment/:username`,
+            method: 'GET',
+            description: 'Get grades of (username) related to the course with (course_id)'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:course_id/assessment/:username`,
+            method: 'POST',
+            description: 'Post grades for (username) related to the course with (course_id)'
+        },
+        {
+            path: `/api/${currentVersion}/courses/create`,
+            method: 'POST',
+            description: 'Add a course to the database. Do not specify the _id field'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:id/update`,
+            method: 'PUT',
+            description: 'Update a course. If you update the course content, the ratings and progress are reset.'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:id/rate`,
+            method: 'PUT',
+            description: 'Add or update a user\'s rating of a course. Body has to include a username field'
+        },
+        {
+            path: `/api/${currentVersion}/courses/:id/progress`,
+            method: 'PUT',
+            description: 'Add or update a user\'s progress of a course. Body has to include a username field'
         }
-
     ]
 }
 
