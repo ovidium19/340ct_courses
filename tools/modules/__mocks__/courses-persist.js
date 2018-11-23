@@ -8,7 +8,13 @@ const courses = [
     {
         _id: 1,
         name: 'CourseTest',
-        category: 'not-git'
+        category: 'not-git',
+        ratings: [
+            {
+                username: 'test',
+                rating: 4
+            }
+        ]
     },
     {
         _id: 2,
@@ -57,6 +63,26 @@ export async function getCourseById(options){
 }
 export async function postCourse(options) {
     return Promise.resolve({id: courses.length+1})
+}
+export async function rateCourse(options){
+    return new Promise((resolve,reject) => {
+        console.log(options)
+        let course = courses.find(c => c['_id'] == options.id)
+        if (!(course)) reject('Course not found')
+
+        else{
+            let courseRating = course.ratings.find(r => r.username == options.data.username)
+            if (courseRating){
+                courseRating.rating = options.data.rating
+
+            }
+            else{
+                course.ratings.push(options.data)
+            }
+            resolve({value: course})
+        }
+
+    })
 }
 export async function createCourse(course,user){
     if (!(users.find(u => u.username == user.username && u.password == user.password))) throw new Error('Authentication failed')

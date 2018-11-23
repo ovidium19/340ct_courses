@@ -201,6 +201,45 @@ describe('Post /courses/create', () => {
         done()
     })
 })
+describe('Put /courses/:id/rate', () => {
+    const rating = {
+        username: 'test',
+        rating: 5
+    }
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).put('/api/v1/courses/1/rate').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).put('/api/v1/courses/1/rate').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).put('/api/v1/courses/1/rate').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('Expect rating to be updated in case it exists', async done => {
+        const response = await request(server).put('/api/v1/courses/1/rate').set('auth','allow').send(rating).expect(status.OK)
+        expect(response.body.value.ratings[0].rating).toBe(5)
+        done()
+    })
+    test('Expect rating to be added if it didn\'t already exist', async done => {
+        rating.username = 'test2'
+        const response = await request(server).put('/api/v1/courses/1/rate').set('auth','allow').send(rating).expect(status.OK)
+        expect(response.body.value.ratings.length).toBe(3)
+        done()
+    })
+})
 /*
 describe('GET /api/v1/courses', () => {
     beforeAll(runBeforeAll)

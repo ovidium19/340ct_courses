@@ -174,6 +174,66 @@ describe('Testing postCourse', () => {
         done()
     })
 })
+describe('Testing rateCourse', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        id: 1,
+        test: {
+            func: 'rateCourse'
+        },
+        data: {
+            rating: 2.3,
+            username: 'test'
+        }
+    }
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        const goodOptions = Object.assign({},options)
+        goodOptions.data.level = 1
+
+        const newOptions = Object.assign({},goodOptions,{user})
+        try{
+            const result = await db.rateCourse(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If course doesn\'t match schema, expect error', async done => {
+        try{
+            let result = await db.rateCourse({data: {}})
+        }
+        catch(err){
+            console.log(err.message)
+            expect(err.message).toBe('Rating doesn\'t match schema')
+        }
+        done()
+    })
+    test('Expect value to be updated if it exists', async done => {
+        const goodOptions = Object.assign({},options)
+
+        const result = await db.rateCourse(goodOptions)
+
+        expect(result.value.rating).toBe(2.3)
+        done()
+    })
+    test('Expect value to be pushed if it\'s the first username rating', async done => {
+        const newOptions = Object.assign({},options)
+        newOptions.data.username = 'test2'
+        const result = await db.rateCourse(newOptions)
+
+        expect(result.value.rating).toBe(2.3)
+        done()
+    })
+})
 /*
 db-persist should have the following API:
     createUser(userData,userLogin) -> returns user if successful, error message if not

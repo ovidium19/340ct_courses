@@ -14,6 +14,10 @@ const courseSchema = {
     level: '',
     category: ''
 }
+const ratingSchema = {
+    username: '',
+    rating: ''
+}
 export async function getCourses(options) {
     let client = options.user ? await connect(options.user): await connect(basicUser)
 
@@ -135,6 +139,36 @@ export async function postCourse(options) {
     let result = await collection.insertOne(options.data)
     await client.close()
     return {id: result.insertedId}
+}
+export async function rateCourse(options){
+    if (!(schemaCheck(ratingSchema,options.data))){
+        console.log('Throwing error')
+        throw new Error('Rating doesn\'t match schema')
+    }
+    console.log(options)
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+    let result
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    let filter = {
+        '_id': ObjectID.createFromHexString(options.id),
+        'ratings': { $elemMatch : { 'username': options.data.username}}
+    }
+    let update = {
+        '$set': { 'ratings.$.rating': options.data.rating}
+    }
+    result = await collection.findOneAndUpdate(filter,update,options)
+    if (!result.value) {
+        let filter = {
+            '_id': ObjectID.createFromHexString(options.id)
+        }
+        let update = {
+            '$push': { 'ratings': options.data}
+        }
+        result = await collection.findOneAndUpdate(filter,update,options)
+    }
+    await client.close()
+    return result
 }
 /*
 export async function getCourseById(id){

@@ -35,14 +35,21 @@ const data = [
                     name: 'Git',
                     username: 'test',
                     category: 'not-git',
-                    published: true
+                    published: true,
+                    ratings: [
+                        {
+                            username: 'test',
+                            rating: 2
+                        }
+                    ]
                 },
                 {
                     _id: 2,
                     name: 'Git',
                     username: 'test',
                     category: 'git',
-                    published: true
+                    published: true,
+                    ratings: []
                 },
                 {
                     _id: 3,
@@ -141,6 +148,30 @@ class Collection {
                         skipped: 0
                     })
                     return new Cursor(data.values)
+                }
+            }
+            case 'getCourseById': {
+                if (options.id <= db_data.length) return new Cursor([db_data[options.id - 1]])
+                return new Cursor([])
+            }
+        }
+    }
+    findOneAndUpdate(filter,update,options){
+        let db_data = this.data.s.documents
+        switch (options.test.func) {
+            case 'rateCourse': {
+                let course = db_data.find(c => c['_id'] == options.id)
+                let courseRating = course.ratings.find(r => r.username == options.data.username)
+                if (courseRating){
+                    courseRating.rating = options.data.rating
+                    return {value: courseRating}
+                }
+                else{
+                    if (filter.hasOwnProperty('ratings')){
+                        return {value: null}
+                    }
+                    course.ratings.push(options.data)
+                    return {value: course.ratings[course.ratings.length-1]}
                 }
             }
             case 'getCourseById': {
