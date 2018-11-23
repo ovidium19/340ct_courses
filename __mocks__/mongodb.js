@@ -3,7 +3,8 @@
 const _ = require('underscore')
 const dbs = {
     users: 0,
-    courses:1
+    courses:1,
+    grades: 2
 }
 export class ObjectID {
     constructor(id) {
@@ -88,6 +89,18 @@ const data = [
                 },
         ]
         }
+    },
+    {
+        s: {
+            name: 'grades',
+            documents: [
+                {
+                    _id: 1,
+                    username: 'test',
+                    course_id: 1
+                }
+        ]
+        }
     }
 ]
 
@@ -159,6 +172,10 @@ class Collection {
             }
             case 'getCourseById': {
                 if (options.id <= db_data.length) return new Cursor([db_data[options.id - 1]])
+                return new Cursor([])
+            }
+            case 'getAssessmentResultsForCourse': {
+                if (options.course_id <= db_data.length) return new Cursor([db_data[options.course_id - 1]])
                 return new Cursor([])
             }
         }

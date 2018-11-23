@@ -367,156 +367,51 @@ describe('Testing updateCourse', () => {
     })
 
 })
-/*
-db-persist should have the following API:
-    createUser(userData,userLogin) -> returns user if successful, error message if not
-    getCourseById(cid,user) -> returns course if successful, error message if not
-    createCourse(courseData,user) -> returns course if successful, error message if not
-    collections(user) -> returns collections in db
-*/
-// describe('Testing connection', () => {
-//     const correctUser = {
-//         username: 'test',
-//         password: 'test'
-//     }
-//     const wrongUser = {
-//         username: 'wrong',
-//         password: 'wrong'
-//     }
-//     test('If authentication succeeds, course should be available', async done => {
-//         const result = await db.getCourseById(1,correctUser)
-//         expect(result['_id']).toBe(1)
-//         done()
-//     })
-
-//     test('If wrong user, authentication fails', async done => {
-//         try{
-//             const result = await db.getCourseById(1,wrongUser)
-//         }
-//         catch(err){
-//             expect(err.message).toBe('Authentication failed')
-//         }
-//         done()
-//     })
-// })
-/*
-describe('Testing getCourseById', () => {
+describe('Testing getAssessmentResultsForCourse', () => {
     const user = {
         username: 'test',
         password: 'test'
     }
-
-    test('A document found should return the document', async done => {
-        const result = await db.getCourseById(1,user)
-        expect(result['_id']).toBe(1)
-        done()
-    })
-
-    test('If document not found, should return nothing', async done => {
-        const result = await db.getCourseById(2,user)
-        expect(result).toBe(undefined)
-        done()
-    })
+    const options = {
+        course_id: 1,
+        username: 'test',
+        test: {
+            func: 'getAssessmentResultsForCourse'
+        }
+    }
     test('If connection doesn\'t go through, get error', async done => {
         const user = {
             username: 'forceError',
             password: 'any'
         }
+
+        const newOptions = Object.assign({},options,{user})
         try{
-            const result = await db.getCourseById(1,user)
+            const result = await db.getAssessmentResultsForCourse(options)
         }
         catch(err){
             expect(err.message).toBe('Connection not established')
         }
         done()
     })
-})
 
-describe('Testing db.createCourse(course,user)', () => {
-    const course = {
-        _id: 2,
-        name: 'TestCourse'
-    }
-    const user = {
-        username: 'test',
-        password: 'test'
-    }
-
-    test('Create course successfully', async done => {
-        const result = await db.createCourse(course,user)
-        expect(result['_id']).toBe(2)
+    test('If assessment not found, expect empty array', async done => {
+        let result = await db.getAssessmentResultsForCourse(Object.assign({},options,{course_id: 15}))
+        expect(result.length).toBe(0)
         done()
     })
-
-    test('Course data doesn\'t match schema', async done => {
-        const course = {
-            _id: 3
-        }
-        try{
-            const result = await db.createCourse(course,user)
-        }
-        catch(err){
-            expect(err.message).toBe('Course doesn\'t match schema')
-        }
-        done()
-    })
-
-    test('Trying to insert a course with an _id that already exists results in error', async done => {
-        const course = {
-            _id: 1,
-            name: 'TestCourse'
-        }
-        try{
-            const result = await db.createCourse(course,user)
-        }
-        catch(err) {
-            expect(err.message).toBe('Course ID already exists')
-        }
+    test('If the call is successful, retrieve the assessment', async done => {
+        let result = await db.getAssessmentResultsForCourse(options)
+        console.log(result)
+        expect(result.length).toBe(1)
+        expect(result[0].course_id).toBe(1)
         done()
     })
 })
-
-describe('Testing db.updateCourse(course,user)', () => {
-    const user = {
-        username: 'test',
-        password: 'test'
-    }
-    const course = {
-        _id: 1,
-        name: 'updated'
-    }
-
-    test('Update course successfully', async done => {
-        const result = await db.updateCourse(course,user)
-        expect(result.name).toBe('updated')
-        done()
-    })
-
-    test('Course data doesn\'t match schema', async done => {
-        const course = {
-            _id: 3
-        }
-        try{
-            const result = await db.updateCourse(course,user)
-        }
-        catch(err){
-            expect(err.message).toBe('Course doesn\'t match schema')
-        }
-        done()
-    })
-
-    test('Trying to update a course with an _id that doesn\'t exist results in error', async done => {
-        const course = {
-            _id: 5,
-            name: 'TestCourse'
-        }
-        try{
-            const result = await db.updateCourse(course,user)
-        }
-        catch(err) {
-            expect(err.message).toBe('Course doesn\'t exist')
-        }
-        done()
-    })
-})
+/*
+db-persist should have the following API:
+    createUser(userData,userLogin) -> returns user if successful, error message if not
+    getCourseById(cid,user) -> returns course if successful, error message if not
+    createCourse(courseData,user) -> returns course if successful, error message if not
+    collections(user) -> returns collections in db
 */

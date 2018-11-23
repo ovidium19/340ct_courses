@@ -231,6 +231,27 @@ export async function updateCourse(options){
     await client.close()
     return result['result']
 }
+
+export async function getAssessmentResultsForCourse(options) {
+    //project total_points as $sum: assessment_grades.$.points
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_GRADES_COLLECTION)
+    let aggPipe = [
+        {
+            $match: { 'course_id': ObjectID.createFromHexString(options.course_id), 'username': options.username }
+        },
+        {
+            $project: {'_id': 0}
+        }
+    ]
+    let cursor = await collection.aggregate(aggPipe,options)
+    let results = await cursor.toArray()
+    await cursor.close()
+    //let result = await collection.findOne({'_id': ObjectID.createFromHexString(options.id)})
+    await client.close(true)
+    return results
+}
 /*
 export async function getCourseById(id){
     let client

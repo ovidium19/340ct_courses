@@ -106,6 +106,20 @@ router.put('/:id/update', async ctx => {
 		ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })
+router.get('/:course_id/assessment/:username', async ctx => {
+    ctx.set('Allow','GET')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
+        let options = {...ctx.params, ...ctx.query}
+        let res = await db.getAssessmentResultsForCourse(options)
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
 //TODO: Put routes for /rate, /progress, /update
 /*
 router.post('/', async ctx => {
