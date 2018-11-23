@@ -360,3 +360,32 @@ describe('GET /api/v1/courses/:course_id/assessment/:username', () => {
         done()
     })
 })
+describe('Post /courses/:course_id/assessment/:username', () => {
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).post('/api/v1/courses/1/assessment/test').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).post('/api/v1/courses/1/assessment/test').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).post('/api/v1/courses/1/assessment/test').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('In case of a good call but no id found, get the inserted id', async done => {
+        const response = await request(server).post('/api/v1/courses/1/assessment/test').set('auth','allow').expect(status.OK)
+        expect(response.body.id).toBe(2)
+        done()
+    })
+})

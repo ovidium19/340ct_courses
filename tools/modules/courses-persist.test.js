@@ -387,7 +387,7 @@ describe('Testing getAssessmentResultsForCourse', () => {
 
         const newOptions = Object.assign({},options,{user})
         try{
-            const result = await db.getAssessmentResultsForCourse(options)
+            const result = await db.getAssessmentResultsForCourse(newOptions)
         }
         catch(err){
             expect(err.message).toBe('Connection not established')
@@ -402,9 +402,56 @@ describe('Testing getAssessmentResultsForCourse', () => {
     })
     test('If the call is successful, retrieve the assessment', async done => {
         let result = await db.getAssessmentResultsForCourse(options)
-        console.log(result)
+
         expect(result.length).toBe(1)
         expect(result[0].course_id).toBe(1)
+        done()
+    })
+})
+describe('Testing postGrades', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        data: {
+            username: 'test',
+            course_id: 1,
+            grades: [],
+            passed: false
+        }
+    }
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+
+        const newOptions = Object.assign({},options,{user})
+        try{
+            const result = await db.postGrades(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If course doesn\'t match schema, expect error', async done => {
+        try{
+            let result = await db.postGrades({data: {}})
+        }
+        catch(err){
+
+            expect(err.message).toBe('Grade doesn\'t match schema')
+        }
+        done()
+    })
+    test('Expect grade id as result of a successful post', async done => {
+
+        const result = await db.postGrades(options)
+
+        expect(result.id).toBe(2)
         done()
     })
 })

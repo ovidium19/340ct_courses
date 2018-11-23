@@ -23,6 +23,12 @@ const progressSchema = {
     finished: '',
     current_page: ''
 }
+const gradeSchema = {
+    course_id: '',
+    username: '',
+    grades: '',
+    passed: ''
+}
 export async function getCourses(options) {
     let client = options.user ? await connect(options.user): await connect(basicUser)
 
@@ -251,6 +257,21 @@ export async function getAssessmentResultsForCourse(options) {
     //let result = await collection.findOne({'_id': ObjectID.createFromHexString(options.id)})
     await client.close(true)
     return results
+}
+export async function postGrades(options) {
+    if (!(schemaCheck(gradeSchema,options.data))){
+        console.log('Throwing error')
+        throw new Error('Grade doesn\'t match schema')
+    }
+
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_GRADES_COLLECTION)
+    options.data.course_id = ObjectID.createFromHexString(options.data.course_id)
+    let result = await collection.insertOne(options.data)
+    await client.close()
+    return {id: result.insertedId}
 }
 /*
 export async function getCourseById(id){

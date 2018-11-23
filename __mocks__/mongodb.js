@@ -127,7 +127,7 @@ class Collection {
             resolve(result)
         })
     }
-    insertOne(course){
+    insertOne(document){
         return new Promise((resolve) => {
             resolve({insertedId: this.data.s.documents.length+1})
         })

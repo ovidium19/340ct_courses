@@ -162,3 +162,6 @@ export async function getAssessmentResultsForCourse(options) {
     let results = grades.filter(g => g.course_id == options.course_id && g.username == options.username)
     return results
 }
+export async function postGrades(options){
+    return Promise.resolve({id: grades.length+1})
+}
