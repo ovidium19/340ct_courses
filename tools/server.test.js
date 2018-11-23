@@ -240,6 +240,46 @@ describe('Put /courses/:id/rate', () => {
         done()
     })
 })
+describe('Put /courses/:id/progress', () => {
+    const progress = {
+        username: 'test',
+        finished: true,
+        current_page: 2
+    }
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).put('/api/v1/courses/1/progress').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).put('/api/v1/courses/1/progress').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).put('/api/v1/courses/1/progress').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('Expect rating to be updated in case it exists', async done => {
+        const response = await request(server).put('/api/v1/courses/1/progress').set('auth','allow').send(progress).expect(status.OK)
+        expect(response.body.value.progress[0].finished).toBe(true)
+        done()
+    })
+    test('Expect rating to be added if it didn\'t already exist', async done => {
+        progress.username = 'test2'
+        const response = await request(server).put('/api/v1/courses/1/progress').set('auth','allow').send(progress).expect(status.OK)
+        expect(response.body.value.progress.length).toBe(3)
+        done()
+    })
+})
 /*
 describe('GET /api/v1/courses', () => {
     beforeAll(runBeforeAll)

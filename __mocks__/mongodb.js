@@ -41,6 +41,13 @@ const data = [
                             username: 'test',
                             rating: 2
                         }
+                    ],
+                    progress: [
+                        {
+                            username: 'test',
+                            finished: false,
+                            current_page: 1
+                        }
                     ]
                 },
                 {
@@ -174,9 +181,21 @@ class Collection {
                     return {value: course.ratings[course.ratings.length-1]}
                 }
             }
-            case 'getCourseById': {
-                if (options.id <= db_data.length) return new Cursor([db_data[options.id - 1]])
-                return new Cursor([])
+            case 'progressCourse': {
+                let course = db_data.find(c => c['_id'] == options.id)
+                let courseProgress = course.ratings.find(r => r.username == options.data.username)
+                if (courseProgress){
+                    courseProgress.finished = options.data.finished
+                    courseProgress['current_page'] = options.data['current_page']
+                    return {value: courseProgress}
+                }
+                else{
+                    if (filter.hasOwnProperty('progress')){
+                        return {value: null}
+                    }
+                    course.progress.push(options.data)
+                    return {value: course.progress[course.progress.length-1]}
+                }
             }
         }
     }

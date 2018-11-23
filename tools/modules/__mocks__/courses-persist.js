@@ -14,6 +14,13 @@ const courses = [
                 username: 'test',
                 rating: 4
             }
+        ],
+        progress: [
+            {
+                username: 'test',
+                finished: false,
+                current_page: 1
+            }
         ]
     },
     {
@@ -78,6 +85,26 @@ export async function rateCourse(options){
             }
             else{
                 course.ratings.push(options.data)
+            }
+            resolve({value: course})
+        }
+
+    })
+}
+export async function progressCourse(options){
+    return new Promise((resolve,reject) => {
+        let course = courses.find(c => c['_id'] == options.id)
+        if (!(course)) reject('Course not found')
+
+        else{
+            let courseProgress = course.progress.find(r => r.username == options.data.username)
+            if (courseProgress){
+                courseProgress.finished = options.data.finished
+                courseProgress.current_page = options.data.current_page
+
+            }
+            else{
+                course.progress.push(options.data)
             }
             resolve({value: course})
         }

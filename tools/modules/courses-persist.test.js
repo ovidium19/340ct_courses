@@ -234,6 +234,67 @@ describe('Testing rateCourse', () => {
         done()
     })
 })
+describe('Testing progressCourse', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+        id: 1,
+        test: {
+            func: 'progressCourse'
+        },
+        data: {
+            finished: true,
+            current_page: 2,
+            username: 'test'
+        }
+    }
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+        const goodOptions = Object.assign({},options)
+        goodOptions.data.level = 1
+
+        const newOptions = Object.assign({},goodOptions,{user})
+        try{
+            const result = await db.progressCourse(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If course doesn\'t match schema, expect error', async done => {
+        try{
+            let result = await db.progressCourse({data: {}})
+        }
+        catch(err){
+            console.log(err.message)
+            expect(err.message).toBe('Progress doesn\'t match schema')
+        }
+        done()
+    })
+    test('Expect value to be updated if it exists', async done => {
+        const goodOptions = Object.assign({},options)
+
+        const result = await db.progressCourse(goodOptions)
+
+        expect(result.value.finished).toBe(true)
+        done()
+    })
+    test('Expect value to be pushed if it\'s the first username progress report', async done => {
+        const newOptions = Object.assign({},options)
+        newOptions.data.username = 'test5'
+        const result = await db.progressCourse(newOptions)
+
+        expect(result.value.finished).toBe(true)
+        done()
+    })
+})
 /*
 db-persist should have the following API:
     createUser(userData,userLogin) -> returns user if successful, error message if not
