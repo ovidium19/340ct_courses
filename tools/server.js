@@ -4,6 +4,7 @@ import Router from 'koa-router'
 import status from 'http-status-codes'
 import mount from 'koa-mount'
 import morgan from 'koa-morgan'
+import cors from 'koa-cors'
 import v1 from './versions/v1/v1'
 require('dotenv').config()
 const currentVersion = 'v1'
@@ -64,9 +65,12 @@ const app = new koa()
 const port = 3031
 app.use(koaBP())
 app.use(morgan('tiny'))
+app.use(cors())
 const router = new Router()
 app.use( async(ctx, next) => {
     ctx.set('Access-Control-Allow-Origin', '*')
+    ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+    ctx.set('Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS')
     ctx.set('content-type','application/json')
 	await next()
 })

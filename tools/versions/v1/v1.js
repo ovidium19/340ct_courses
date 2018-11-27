@@ -10,6 +10,7 @@ const app = new koa()
 const router = new Router()
 app.use(async (ctx,next) => {
     await next().catch(err => {
+        console.log(err)
         ctx.status = status.UNAUTHORIZED
         ctx.body = {status: status.UNAUTHORIZED, message: err.message}
     })
