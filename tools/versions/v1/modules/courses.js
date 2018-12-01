@@ -5,6 +5,7 @@ import koabp from 'koa-bodyparser'
 import status from 'http-status-codes'
 import * as db from '../../../modules/courses-persist'
 import dotenv from 'dotenv'
+import basicAuth from './basicAuthcheck'
 dotenv.config()
 const app = new koa()
 
@@ -33,6 +34,14 @@ router.get('/', async ctx => {
 		ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })
+router.use(async (ctx,next) => {
+     await next().catch(err => {
+         ctx.status = status.UNAUTHORIZED
+        ctx.body = {status: status.UNAUTHORIZED, message: err.message}
+    })
+
+})
+router.use(basicAuth)
 router.post('/create', async ctx => {
     ctx.set('Allow','POST')
     try {
@@ -58,7 +67,7 @@ router.get('/:id', async ctx => {
     }
     catch(err) {
         ctx.status = status.BAD_REQUEST
-		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+        ctx.body = {status: status.BAD_REQUEST, message: err.message}
     }
 })
 router.put('/:id/rate', async ctx => {
@@ -98,6 +107,21 @@ router.put('/:id/update', async ctx => {
         let options = {...ctx.params, ...ctx.query}
         options.data = ctx.request.body
         let res = await db.updateCourse(options)
+        ctx.status = status.OK
+        ctx.body = res
+    }
+    catch(err) {
+        ctx.status = status.BAD_REQUEST
+		ctx.body = {status: status.BAD_REQUEST, message: err.message}
+    }
+})
+router.get('/for/:username/', async ctx => {
+    //get all courses progressed by user and append grades if available
+    ctx.set('Allow','GET')
+    try {
+        if (ctx.get('error')) throw new Error(ctx.get('error'))
+        let options = {...ctx.params, ...ctx.query}
+        let res = await db.getCoursesProgressedByUser(options)
         ctx.status = status.OK
         ctx.body = res
     }

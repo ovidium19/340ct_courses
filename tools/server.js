@@ -67,6 +67,14 @@ app.use(morgan('tiny'))
 const router = new Router()
 app.use( async(ctx, next) => {
     ctx.set('Access-Control-Allow-Origin', '*')
+<<<<<<< Updated upstream
+||||||| merged common ancestors
+    ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+    ctx.set('Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS')
+=======
+    ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+    ctx.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+>>>>>>> Stashed changes
     ctx.set('content-type','application/json')
 	await next()
 })

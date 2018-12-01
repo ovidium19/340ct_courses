@@ -17,6 +17,8 @@
       "jest": true
     },
     "rules": {
+        "complexity": ["error", 6],
+        "max-statements": ["error", 17],
       "quotes": [1,"single"],
       "no-console": 1,
       "no-debugger": 1,
@@ -34,8 +36,9 @@
     },
     "overrides": [
         {
-            "files": [ "*.test.js", "*.spec.js" ],
+            "files": [ "*.test.js", "*.spec.js", "__mocks__/mongodb.js" ],
             "rules": {
+                "complexity": "off",
                 "max-lines-per-function": "off",
                 "max-lines": "off",
                 "max-statements": "off",
@@ -43,6 +46,7 @@
                 "no-console": "off"
             }
         }
+
     ]
 
   }

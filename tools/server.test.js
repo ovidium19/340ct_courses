@@ -15,11 +15,11 @@ In order to avoid this, we test all our modules in this one script, and close th
 test suite has been executed
 */
 async function runBeforeAll() {
-    console.log('Testing server!')
+
     axios.mockImplementation((options) => {
         return new Promise((resolve,reject) => {
             if (options.hasOwnProperty('headers')){
-                options.headers['auth'] == 'allow' ? resolve() : reject({message: 'Authorization failed'})
+                options.headers.auth == 'allow' ? resolve() : reject({message: 'Authorization failed'})
             }
             else{
                 reject({message: 'Authorization failed'})
@@ -30,7 +30,7 @@ async function runBeforeAll() {
 }
 async function runAfterAll() {
     await server.close()
-    console.log('Server closed')
+
 }
 
 describe('GET /api', () => {
@@ -47,7 +47,6 @@ describe('GET /api', () => {
     })
     test('check body for api', async done => {
         const response = await request(server).get('/api')
-        const expected = [{name: 'users'},{name: 'courses'}]
         expect(response.body).toEqual(expect.objectContaining({
             currentVersion: expect.any(String),
             routes: expect.any(Array)
@@ -71,14 +70,14 @@ describe('GET /api/v1', () => {
 
     test('check common response headers', async done => {
 		//expect.assertions(2)
-        const response = await request(server).get('/api/v1').set('auth','allow')
+        const response = await request(server).get('/api/v1')
         //expect(response.status).toBe(status.OK)
 		expect(response.header['access-control-allow-origin']).toBe('*')
 		expect(response.header['content-type']).toContain('application/json')
 		done()
     })
     test('check for NOT_FOUND status if database down', async done => {
-		const response = await request(server).get('/api/v1').set('auth','allow')
+		const response = await request(server).get('/api/v1')
 			.set('error', 'foo')
         expect(response.status).toEqual(status.NOT_FOUND)
 		const data = JSON.parse(response.text)
@@ -86,15 +85,11 @@ describe('GET /api/v1', () => {
 		done()
     })
     test('check body for api/v1', async done => {
-        const response = await request(server).get('/api/v1').set('auth','allow')
+        const response = await request(server).get('/api/v1')
         expect(response.body).toEqual(expect.objectContaining({path: expect.any(String)}))
         done()
     })
-    test('Resource is protected by authorization', async done => {
-        const response = await request(server).get('/api/v1').expect(status.UNAUTHORIZED)
-        expect(response.body.message).toBe('Authorization failed')
-        done()
-    })
+
 })
 describe('GET /api/v1/courses/', () => {
     beforeAll(runBeforeAll)
@@ -102,36 +97,32 @@ describe('GET /api/v1/courses/', () => {
 
     test('check common response headers', async done => {
 		//expect.assertions(2)
-        const response = await request(server).get('/api/v1/courses').set('auth','allow')
+        const response = await request(server).get('/api/v1/courses')
         //expect(response.status).toBe(status.OK)
 		expect(response.header['access-control-allow-origin']).toBe('*')
 		expect(response.header['content-type']).toContain('application/json')
 		done()
     })
     test('check for NOT_FOUND status if database down', async done => {
-		const response = await request(server).get('/api/v1/courses').set('auth','allow')
+		const response = await request(server).get('/api/v1/courses')
 			.set('error', 'foo')
         expect(response.status).toEqual(status.BAD_REQUEST)
 		const data = JSON.parse(response.text)
 		expect(data.message).toBe('foo')
 		done()
     })
-    test('This is a protected resource', async done => {
-        const response = await request(server).get('/api/v1/courses').expect(status.UNAUTHORIZED)
-        done()
-    })
     test('A list of courses is returned with no query params', async done => {
-        const response = await request(server).get('/api/v1/courses').set('auth','allow').expect(status.OK)
+        const response = await request(server).get('/api/v1/courses').expect(status.OK)
         expect(response.body.length).toBeGreaterThanOrEqual(5)
         done()
     })
     test('if pagination query, expect results to be paginated', async done => {
-        const response = await request(server).get('/api/v1/courses?page=2&limit=5').set('auth','allow').expect(status.OK)
+        const response = await request(server).get('/api/v1/courses?page=2&limit=5').expect(status.OK)
         expect(response.body[0]['_id']).toBe(6)
         done()
     })
     test('if category is in the query, expect all results to have that category', async done => {
-        const response = await request(server).get('/api/v1/courses?category=git').set('auth','allow').expect(status.OK)
+        const response = await request(server).get('/api/v1/courses?category=git').expect(status.OK)
         expect(response.body.every(c => c.category == 'git')).toBeTruthy()
         done()
     })
@@ -386,6 +377,38 @@ describe('Post /courses/:course_id/assessment/:username', () => {
     test('In case of a good call but no id found, get the inserted id', async done => {
         const response = await request(server).post('/api/v1/courses/1/assessment/test').set('auth','allow').expect(status.OK)
         expect(response.body.id).toBe(2)
+        done()
+    })
+})
+describe('GET /api/v1/courses/for/:username', () => {
+    beforeAll(runBeforeAll)
+    afterAll(runAfterAll)
+
+    test('check common response headers', async done => {
+		//expect.assertions(2)
+        const response = await request(server).get('/api/v1/courses/for/test').set('auth','allow')
+        //expect(response.status).toBe(status.OK)
+		expect(response.header['access-control-allow-origin']).toBe('*')
+		expect(response.header['content-type']).toContain('application/json')
+		done()
+    })
+    test('check for NOT_FOUND status if database down', async done => {
+		const response = await request(server).get('/api/v1/courses/for/test').set('auth','allow')
+			.set('error', 'foo')
+        expect(response.status).toEqual(status.BAD_REQUEST)
+		const data = JSON.parse(response.text)
+		expect(data.message).toBe('foo')
+		done()
+    })
+    test('This is a protected resource', async done => {
+        const response = await request(server).get('/api/v1/courses/for/test').expect(status.UNAUTHORIZED)
+        done()
+    })
+    test('A list of courses is returned, each course having a ratings, progress and grades section', async done => {
+        const response = await request(server).get('/api/v1/courses/for/test').set('auth','allow').expect(status.OK)
+        console.log(response.body)
+        expect(response.body.length).toBeGreaterThanOrEqual(1)
+        expect(response.body[0].grades[0].username).toEqual('test')
         done()
     })
 })

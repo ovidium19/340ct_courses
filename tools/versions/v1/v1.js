@@ -8,6 +8,7 @@ import basicAuth from './modules/basicAuthcheck'
 
 const app = new koa()
 const router = new Router()
+<<<<<<< Updated upstream
 app.use(async (ctx,next) => {
     await next().catch(err => {
         ctx.status = status.UNAUTHORIZED
@@ -15,6 +16,18 @@ app.use(async (ctx,next) => {
     })
 })
 app.use(basicAuth)
+||||||| merged common ancestors
+app.use(async (ctx,next) => {
+    await next().catch(err => {
+        console.log(err)
+        ctx.status = status.UNAUTHORIZED
+        ctx.body = {status: status.UNAUTHORIZED, message: err.message}
+    })
+})
+app.use(basicAuth)
+=======
+
+>>>>>>> Stashed changes
 router.get('/',async ctx => {
     ctx.set('Allow','GET')
     try {
