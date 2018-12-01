@@ -61,6 +61,7 @@ export async function getCourses(options) {
                         cond: { $eq: ['$$prog.username', options.username] }
                     }
                 },
+                description: 1,
                 published: 1,
                 name: 1,
                 username: 1,
@@ -119,8 +120,10 @@ export async function getCourseById(options) {
                         cond: { $eq: ['$$prog.username', options.username] }
                     }
                 },
+                description: 1,
                 published: 1,
                 name: 1,
+                content: 1,
                 username: 1,
                 category: 1,
                 tags: 1,
@@ -237,7 +240,79 @@ export async function updateCourse(options){
     await client.close()
     return result['result']
 }
-
+export async function getCoursesProgressedByUser(options){
+    let client = options.user ? await connect(options.user): await connect(basicUser)
+    let db = await client.db(process.env.MONGO_DBNAME)
+    let collection = await db.collection(process.env.MONGO_COURSES_COLLECTION)
+    let aggPipe = [
+        {
+            $match: {  'progress.username': options.username }
+        },
+        { $addFields:
+            {
+                'avg_rating': { $avg: '$ratings.rating' },
+                'pages': {$size: '$content.pages'}
+            }
+        },
+        {
+            $project: {
+                ratings: {
+                    $filter: {
+                        input: '$ratings',
+                        as: 'rat',
+                        cond: { $eq: ['$$rat.username', options.username] }
+                    }
+                },
+                progress: {
+                    $filter: {
+                        input: '$progress',
+                        as: 'prog',
+                        cond: { $eq: ['$$prog.username', options.username] }
+                    }
+                },
+                _id: 1,
+                username: 1,
+                created_at: 1,
+                category: 1,
+                pages: 1,
+                avg_rating: 1,
+                description: 1,
+                name: 1
+            }
+        },
+        {
+            $lookup: {
+                from: 'grades',
+                let: { courseid: '$_id'},
+                pipeline: [
+                    { $match:
+                        { $expr:
+                           { $and:
+                              [
+                                { $eq: [ "$course_id",  "$$courseid" ] },
+                                { $eq: [ "$username", options.username ] }
+                              ]
+                           }
+                        }
+                     },
+                     {
+                         $project: {
+                             _id: 0,
+                             course_id: 0,
+                             username: 0
+                         }
+                     }
+                ],
+                as: 'assessments'
+            }
+        }
+    ]
+    let cursor = await collection.aggregate(aggPipe,options)
+    let results = await cursor.toArray()
+    await cursor.close()
+    await client.close(true)
+    return results
+}
 export async function getAssessmentResultsForCourse(options) {
     //project total_points as $sum: assessment_grades.$.points
     let client = options.user ? await connect(options.user): await connect(basicUser)
@@ -248,13 +323,25 @@ export async function getAssessmentResultsForCourse(options) {
             $match: { 'course_id': ObjectID.createFromHexString(options.course_id), 'username': options.username }
         },
         {
-            $project: {'_id': 0}
+            $lookup: {
+                from: 'courses',
+                localField: 'course_id',
+                foreignField: '_id',
+                as: 'course_details'
+            }
+        },
+        {
+            $project: {
+                '_id': 0,
+                'course_details.content': 0,
+                'course_details.ratings': 0,
+                'course_details.progress': 0
+            }
         }
     ]
     let cursor = await collection.aggregate(aggPipe,options)
     let results = await cursor.toArray()
     await cursor.close()
-    //let result = await collection.findOne({'_id': ObjectID.createFromHexString(options.id)})
     await client.close(true)
     return results
 }

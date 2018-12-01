@@ -1,5 +1,3 @@
-
-
 const _ = require('underscore')
 const dbs = {
     users: 0,
@@ -177,6 +175,13 @@ class Collection {
             case 'getAssessmentResultsForCourse': {
                 if (options.course_id <= db_data.length) return new Cursor([db_data[options.course_id - 1]])
                 return new Cursor([])
+            }
+            case 'getCoursesProgressedByUser': {
+
+                return new Cursor(db_data.filter(c=>
+                    c.hasOwnProperty('progress') &&
+                    c.progress.length > 0 &&
+                    c.progress.some(p=> p.username == options.username)))
             }
         }
     }

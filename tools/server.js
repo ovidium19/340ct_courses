@@ -92,23 +92,6 @@ app.use(mount('/api/v1',v1))
 const server = app.listen(port, async() => {
     console.log(`Listening on port ${port}`)
 })
-/*
-// ctrl-c to trigger
-process.on('SIGINT', async () => {
-    // let's shut everything down!
-    console.log("shutting down...")
-    try{
-        await db.close()
-        console.log("Db connection was shut down")
-    }
-    catch(err) {
-        console.log(err.message)
-    }
-    server.close(function() {
-      console.log("shut down!")
-      process.exit()
-    })
-  })
-*/
+
 
 export default server

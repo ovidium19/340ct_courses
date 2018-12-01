@@ -165,3 +165,15 @@ export async function getAssessmentResultsForCourse(options) {
 export async function postGrades(options){
     return Promise.resolve({id: grades.length+1})
 }
+export async function getCoursesProgressedByUser(options) {
+
+    return Promise.resolve([{
+        _id: 1,
+        grades: [{
+            _id: 1,
+            username: 'test',
+            grade: '80'
+        }]
+    }])
+
+}

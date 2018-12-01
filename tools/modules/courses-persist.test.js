@@ -455,10 +455,46 @@ describe('Testing postGrades', () => {
         done()
     })
 })
-/*
-db-persist should have the following API:
-    createUser(userData,userLogin) -> returns user if successful, error message if not
-    getCourseById(cid,user) -> returns course if successful, error message if not
-    createCourse(courseData,user) -> returns course if successful, error message if not
-    collections(user) -> returns collections in db
-*/
+describe('Testing getCoursesProgressedByUser', () => {
+    const user = {
+        username: 'test',
+        password: 'test'
+    }
+    const options = {
+
+        username: 'test',
+        test: {
+            func: 'getCoursesProgressedByUser'
+        }
+    }
+    test('If connection doesn\'t go through, get error', async done => {
+        const user = {
+            username: 'forceError',
+            password: 'any'
+        }
+
+        const newOptions = Object.assign({},options,{user})
+        try{
+            const result = await db.getCoursesProgressedByUser(newOptions)
+        }
+        catch(err){
+            expect(err.message).toBe('Connection not established')
+        }
+        done()
+    })
+
+    test('If new user, expect empty array', async done => {
+        let result = await db.getCoursesProgressedByUser(Object.assign({},options,{username:'newUser'}))
+        expect(result.length).toBe(0)
+        done()
+    })
+    test('If the call is successful, retrieve list of courses where each course has progress report for user', async done => {
+        let result = await db.getCoursesProgressedByUser(options)
+
+        expect(result.length).toBeGreaterThanOrEqual(1)
+        let assertion = result.every(r => r.progress.some(p => p.username == 'test'))
+        expect(assertion).toBe(true)
+        done()
+    })
+})
+
