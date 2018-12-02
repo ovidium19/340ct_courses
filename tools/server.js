@@ -89,7 +89,7 @@ router.get('/api', async ctx => {
 app.use(router.routes())
 app.use(router.allowedMethods())
 app.use(mount('/api/v1',v1))
-const server = app.listen(port, async() => {
+const server = app.listen(process.env.PORT || port, async() => {
     console.log(`Listening on port ${port}`)
 })
 
