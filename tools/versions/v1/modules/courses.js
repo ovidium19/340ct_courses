@@ -41,7 +41,7 @@ router.use(async (ctx,next) => {
     })
 
 })
-//router.use(basicAuth)
+router.use(basicAuth)
 router.post('/create', async ctx => {
     ctx.set('Allow','POST')
     try {
